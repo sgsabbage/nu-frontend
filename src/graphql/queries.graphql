@@ -1,0 +1,99 @@
+query getChannels($last: Int!, $before: String) {
+    channels {
+        id
+        name
+        description
+        messages(last:$last, before: $before) {
+            pageInfo {
+                hasNextPage
+                hasPreviousPage
+            }
+            nodes {
+                    id
+                message
+                timestamp
+                character {
+                    id
+                    name
+                }
+            }
+        }
+        characters {
+            id
+        }
+    }
+}
+
+query getChannelPreviousMessages($id: ID!, $before: String, $last: Int!) {
+    channel(id: $id) {
+        id
+        messages(before: $before, last:$last) {
+            pageInfo {
+                hasNextPage
+                hasPreviousPage
+            }
+            nodes {
+                    id
+                message
+                timestamp
+                character {
+                    id
+                    name
+                }
+            }
+        }
+    }
+}
+
+query getAreas {
+    areas {
+        id
+        name
+        rooms {
+            id
+            name
+            x
+            y
+            exits {
+                id
+                secret
+                endRoom {
+                    id
+                    x
+                    y
+                }
+            }
+        }
+    }
+}
+
+
+query getMe{
+    me {
+        id
+        characters {
+            id
+            name
+            baseColor
+        }
+        windows {
+            id
+            name
+            z
+            top
+            left
+            width
+            height
+            component
+            character {
+                id
+                name
+                baseColor
+            }
+            settings {
+                key
+                value
+            }
+        }
+    }
+}

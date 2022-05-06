@@ -1,0 +1,30 @@
+.DS_Store
+node_modules
+/dist
+frontend/dist
+
+
+# local env files
+.env.local
+.env.*.local
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.pyc
+
+traefik/certs/*.key
+traefik/certs/*.csr
+traefik/certs/*.crt

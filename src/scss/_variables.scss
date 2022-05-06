@@ -1,0 +1,56 @@
+$info: #004040;
+
+$notch-tl: 20px;
+$notch-bl: 5px;
+$notch-br: 30px;
+$notch-tr: 5px;
+
+$notch-path: polygon(
+  0 $notch-tl,
+  0 calc(100% - #{$notch-bl}),
+  $notch-bl 100%,
+  calc(100% - #{$notch-br}) 100%,
+  100% calc(100% - #{$notch-br}),
+  100% #{$notch-tr},
+  calc(100% - #{$notch-tr}) 0,
+  $notch-tl 0
+);
+
+$notch-top-path: polygon(
+  0 $notch-tl,
+  0 100%,
+  100% 100%,
+  100% #{$notch-tr},
+  calc(100% - #{$notch-tr}) 0,
+  $notch-tl 0
+);
+
+$notch-subtle-path: polygon(
+  0 calc(#{$notch-tl}/2),
+  0 100%,
+  calc(100% - #{$notch-br}/2) 100%,
+  100% calc(100% - #{$notch-br}/2),
+  100% 0,
+  calc(#{$notch-tl}/2) 0
+);
+
+$notch-subtle-bottom-path: polygon(
+  0 0,
+  0 100%,
+  calc(100% - #{$notch-br}/2) 100%,
+  100% calc(100% - #{$notch-br}/2),
+  100% 0,
+);
+
+
+$nu-base: rgb(0, 128, 128) !default;
+$nu-dark-1: scale-color($nu-base, $lightness: -20%);
+$nu-dark-2: scale-color($nu-base, $lightness: -40%);
+$nu-dark-3: scale-color($nu-base, $lightness: -60%);
+$nu-dark-4: scale-color($nu-base, $lightness: -70%);
+$nu-dark-5: scale-color($nu-base, $lightness: -80%);
+$nu-light-1: scale-color($nu-base, $lightness: 10%);
+$nu-light-2: scale-color($nu-base, $lightness: 20%);
+$nu-light-3: scale-color($nu-base, $lightness: 30%);
+$nu-light-4: scale-color($nu-base, $lightness: 40%);
+$nu-light-5: scale-color($nu-base, $lightness: 50%);

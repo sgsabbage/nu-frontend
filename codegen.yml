@@ -1,0 +1,18 @@
+schema: http://backend:8000
+documents: 'src/**/*.graphql'
+generates:
+  ./src/gqltypes.ts:
+    plugins:
+      - typescript
+      - typescript-urql-graphcache
+  ./src/queries.ts:
+    preset: import-types
+    config:
+      urqlImportFrom: "@urql/vue"
+    presetConfig:
+      typesPath: "@/gqltypes"
+    plugins:
+      - typescript-operations
+      - typescript-vue-urql
+
+

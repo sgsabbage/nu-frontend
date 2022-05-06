@@ -1,0 +1,15 @@
+subscription subscribeToChannels{
+    channelMessages {
+        id
+        channel {
+          id
+        }
+        character {
+          id
+          name
+        }
+        message
+        timestamp
+    }
+}
+
