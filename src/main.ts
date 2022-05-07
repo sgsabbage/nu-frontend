@@ -15,7 +15,7 @@ import { GraphCacheConfig } from "@/gqltypes";
 import { relayPagination } from "@urql/exchange-graphcache/extras";
 import { ChannelMessage } from "@/gqltypes";
 
-const subscriptionClient = new SubscriptionClient("wss://nu.localhost/api", {
+const subscriptionClient = new SubscriptionClient("ws://localhost:8080/api", {
   reconnect: true,
 });
 
@@ -24,7 +24,7 @@ function isObject(thing: unknown): thing is Record<string, unknown> {
 }
 createApp(App)
   .use(urql, {
-    url: "https://nu.localhost/api",
+    url: "http://localhost:8080/api",
     exchanges: [
       dedupExchange,
       cacheExchange<GraphCacheConfig>({

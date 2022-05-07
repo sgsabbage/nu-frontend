@@ -1,4 +1,4 @@
-schema: http://backend:8000
+schema: http://app:8000
 documents: 'src/**/*.graphql'
 generates:
   ./src/gqltypes.ts:

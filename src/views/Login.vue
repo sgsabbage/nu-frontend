@@ -3,6 +3,9 @@
     <div class="row justify-content-center align-content-center vh-100">
       <div class="col-4">
         <BaseWindow title="Login" :active="true" :static="true">
+          <div v-if="invalid" class="alert alert-danger"
+            >Username/password combination incorrect</div
+          >
           <form @submit.prevent="doLogin" class="mt-2">
             <div class="form-group">
               <label for="username">Username</label>
@@ -41,7 +44,6 @@ import axios from "axios";
 
 import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
-import { CurrentPlayer } from "@/types";
 import * as api from "@/api";
 
 export default defineComponent({
@@ -52,18 +54,17 @@ export default defineComponent({
       password: "",
     });
 
+    const invalid = ref(false);
+
     const router = useRouter();
 
     const doLogin = async () => {
-      let player: CurrentPlayer | null;
       try {
-        console.log(
-          await api.doLogin(form.value.username, form.value.password)
-        );
+        await api.doLogin(form.value.username, form.value.password);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 403) {
-            // Something went wrong
+            invalid.value = true;
           }
         }
         return;
@@ -74,6 +75,7 @@ export default defineComponent({
     return {
       form,
       doLogin,
+      invalid,
     };
   },
 });

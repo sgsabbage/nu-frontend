@@ -8,7 +8,7 @@ export type UpdateWindowMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWindowMutation = { __typename?: 'Mutation', updateWindow?: { __typename?: 'UpdateWindow', window?: { __typename?: 'Window', id: string, top: number, left: number, height: number, width: number, z: number, character?: { __typename?: 'CurrentCharacter', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> } | null } | null };
+export type UpdateWindowMutation = { __typename?: 'Mutation', updateWindow?: { __typename?: 'UpdateWindow', window?: { __typename?: 'Window', id: string, z: number, character?: { __typename?: 'CurrentCharacter', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> } | null } | null };
 
 export type CloseWindowMutationVariables = Types.Exact<{
   input: Types.CloseWindowInput;
@@ -69,10 +69,6 @@ export const UpdateWindowDocument = gql`
   updateWindow(input: $input) {
     window {
       id
-      top
-      left
-      height
-      width
       z
       character {
         id

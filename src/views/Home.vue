@@ -451,6 +451,7 @@ export default defineComponent({
       if (!draggedWindow) {
         return;
       }
+
       updateWindow.executeMutation({
         input: {
           id: draggedWindow.id,
@@ -460,6 +461,7 @@ export default defineComponent({
           height: draggedWindow.height,
         },
       });
+
       draggedWindowId = "";
     };
 
