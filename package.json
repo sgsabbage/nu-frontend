@@ -9,15 +9,19 @@
     "generate": "graphql-codegen"
   },
   "dependencies": {
+    "@apollo/client": "^3.6.2",
+    "@graphql-codegen/typed-document-node": "^2.2.11",
+    "@graphql-codegen/typescript-apollo-client-helpers": "^2.1.18",
+    "@graphql-codegen/typescript-vue-apollo": "^3.2.12",
     "@popperjs/core": "^2.9.2",
-    "@urql/exchange-graphcache": "^4.3.6",
-    "@urql/vue": "^0.6.1",
+    "@vue/apollo-composable": "^4.0.0-alpha.17",
     "axios": "^0.21.1",
     "bootstrap": "^5.0.2",
     "bootstrap-icons": "^1.5.0",
     "color-convert": "^2.0.1",
     "core-js": "^3.16.0",
-    "graphql": "^15.5.1",
+    "graphql": "^15.8.0",
+    "graphql-tag": "^2.12.6",
     "simplebar-vue": "^1.6.7",
     "subscriptions-transport-ws": "^0.9.19",
     "vue": "^3.1.5",
@@ -29,9 +33,6 @@
     "@graphql-codegen/import-types-preset": "^2.1.0",
     "@graphql-codegen/typescript": "^2.4.3",
     "@graphql-codegen/typescript-operations": "^2.2.4",
-    "@graphql-codegen/typescript-urql": "^3.5.1",
-    "@graphql-codegen/typescript-urql-graphcache": "^2.2.4",
-    "@graphql-codegen/typescript-vue-urql": "^2.2.3",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "@vue/cli-plugin-babel": "^4.5.13",
@@ -58,16 +59,21 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/vue3-essential",
       "eslint:recommended",
       "@vue/typescript/recommended",
+      "plugin:vue/vue3-recommended",
       "@vue/prettier",
       "@vue/prettier/@typescript-eslint"
     ],
     "parserOptions": {
       "ecmaVersion": 2020
     },
-    "rules": {}
+    "globals": {
+      "defineProps": "readonly",
+      "defineEmits": "readonly",
+      "defineExpose": "readonly",
+      "withDefaults": "readonly"
+    }
   },
   "prettier": {
     "htmlWhitespaceSensitivity": "strict"

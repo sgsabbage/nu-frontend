@@ -1,284 +1,274 @@
-import * as Types from '@/gqltypes';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: string;
+  String: string;
+  Boolean: boolean;
+  Int: number;
+  Float: number;
+  /** Date with time (isoformat) */
+  DateTime: Date;
+};
 
-import gql from 'graphql-tag';
-import * as Urql from '@urql/vue';
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-export type UpdateWindowMutationVariables = Types.Exact<{
-  input: Types.UpdateWindowInput;
+export type Area = {
+  __typename?: 'Area';
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  rooms: Array<Room>;
+};
+
+export type Channel = {
+  __typename?: 'Channel';
+  characters: Array<Character>;
+  description?: Maybe<Scalars['String']>;
+  id: Scalars['ID'];
+  messages: ChannelMessageConnection;
+  name: Scalars['String'];
+};
+
+
+export type ChannelMessagesArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+};
+
+export type ChannelMessage = {
+  __typename?: 'ChannelMessage';
+  channel: Channel;
+  character: Character;
+  id: Scalars['ID'];
+  message: Scalars['String'];
+  timestamp: Scalars['DateTime'];
+};
+
+export type ChannelMessageConnection = {
+  __typename?: 'ChannelMessageConnection';
+  edges: Array<ChannelMessageEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ChannelMessageEdge = {
+  __typename?: 'ChannelMessageEdge';
+  cursor: Scalars['String'];
+  node: ChannelMessage;
+};
+
+export type Character = {
+  __typename?: 'Character';
+  baseColor?: Maybe<Scalars['String']>;
+  id: Scalars['ID'];
+  name: Scalars['String'];
+};
+
+export type CloseWindowInput = {
+  id: Scalars['ID'];
+};
+
+export type CloseWindowResult = {
+  __typename?: 'CloseWindowResult';
+  ok: Scalars['Boolean'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  closeWindow: CloseWindowResult;
+  sendChannelMessage: SendChannelMessageResult;
+  updateWindow: UpdateWindowResult;
+};
+
+
+export type MutationCloseWindowArgs = {
+  input: CloseWindowInput;
+};
+
+
+export type MutationSendChannelMessageArgs = {
+  input: SendChannelMessageInput;
+};
+
+
+export type MutationUpdateWindowArgs = {
+  input: UpdateWindowInput;
+};
+
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor?: Maybe<Scalars['String']>;
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+  startCursor?: Maybe<Scalars['String']>;
+};
+
+export type Player = {
+  __typename?: 'Player';
+  characters: Array<Character>;
+  email: Scalars['String'];
+  id: Scalars['ID'];
+  username: Scalars['String'];
+  windows: Array<Window>;
+};
+
+export type Query = {
+  __typename?: 'Query';
+  areas: Array<Area>;
+  channel: Channel;
+  channels: Array<Channel>;
+  me: Player;
+  rooms: Array<Room>;
+};
+
+
+export type QueryChannelArgs = {
+  id: Scalars['ID'];
+};
+
+export type Room = {
+  __typename?: 'Room';
+  area: Area;
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  x: Scalars['Int'];
+  y: Scalars['Int'];
+};
+
+export type SendChannelMessageInput = {
+  characterId: Scalars['ID'];
+  id: Scalars['ID'];
+  message: Scalars['String'];
+};
+
+export type SendChannelMessageResult = {
+  __typename?: 'SendChannelMessageResult';
+  message: ChannelMessage;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  channelMessages: ChannelMessage;
+};
+
+export type UpdateWindowInput = {
+  characterId?: InputMaybe<Scalars['ID']>;
+  height?: InputMaybe<Scalars['Int']>;
+  id: Scalars['ID'];
+  left?: InputMaybe<Scalars['Int']>;
+  settings?: InputMaybe<Array<WindowSettingInput>>;
+  top?: InputMaybe<Scalars['Int']>;
+  width?: InputMaybe<Scalars['Int']>;
+  z?: InputMaybe<Scalars['Int']>;
+};
+
+export type UpdateWindowResult = {
+  __typename?: 'UpdateWindowResult';
+  window: Window;
+};
+
+export type Window = {
+  __typename?: 'Window';
+  character?: Maybe<Character>;
+  component?: Maybe<Scalars['String']>;
+  height: Scalars['Int'];
+  id: Scalars['ID'];
+  left: Scalars['Int'];
+  name: Scalars['String'];
+  settings: Array<WindowSetting>;
+  top: Scalars['Int'];
+  width: Scalars['Int'];
+  z: Scalars['Int'];
+};
+
+export type WindowSetting = {
+  __typename?: 'WindowSetting';
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type WindowSettingInput = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ChannelMessageFragment = { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, character: { __typename?: 'Character', id: string, name: string } };
+
+export type ChannelBaseFragment = { __typename?: 'Channel', id: string, name: string, description?: string | null };
+
+export type PageInfoAllFragment = { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null };
+
+export type ChannelMessagesFragment = { __typename?: 'ChannelMessageConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'ChannelMessageEdge', cursor: string, node: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, character: { __typename?: 'Character', id: string, name: string } } }> };
+
+export type UpdateWindowMutationVariables = Exact<{
+  input: UpdateWindowInput;
 }>;
 
 
-export type UpdateWindowMutation = { __typename?: 'Mutation', updateWindow?: { __typename?: 'UpdateWindow', window?: { __typename?: 'Window', id: string, z: number, character?: { __typename?: 'CurrentCharacter', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> } | null } | null };
+export type UpdateWindowMutation = { __typename?: 'Mutation', updateWindow: { __typename?: 'UpdateWindowResult', window: { __typename?: 'Window', id: string, top: number, left: number, height: number, width: number, z: number, character?: { __typename?: 'Character', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> } } };
 
-export type CloseWindowMutationVariables = Types.Exact<{
-  input: Types.CloseWindowInput;
+export type UpdateWindowLocationMutationVariables = Exact<{
+  input: UpdateWindowInput;
 }>;
 
 
-export type CloseWindowMutation = { __typename?: 'Mutation', closeWindow?: { __typename?: 'CloseWindow', ok: boolean } | null };
+export type UpdateWindowLocationMutation = { __typename?: 'Mutation', updateWindow: { __typename?: 'UpdateWindowResult', window: { __typename?: 'Window', id: string } } };
 
-export type SendChannelMessageMutationVariables = Types.Exact<{
-  input: Types.SendChannelMessageInput;
+export type CloseWindowMutationVariables = Exact<{
+  input: CloseWindowInput;
 }>;
 
 
-export type SendChannelMessageMutation = { __typename?: 'Mutation', sendChannelMessage?: { __typename?: 'SendChannelMessage', message: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: any, character?: { __typename?: 'Character', id: string, name: string } | null } } | null };
+export type CloseWindowMutation = { __typename?: 'Mutation', closeWindow: { __typename?: 'CloseWindowResult', ok: boolean } };
 
-export type OpenWindowMutationVariables = Types.Exact<{
-  input: Types.OpenWindowInput;
+export type SendChannelMessageMutationVariables = Exact<{
+  input: SendChannelMessageInput;
 }>;
 
 
-export type OpenWindowMutation = { __typename?: 'Mutation', openWindow: { __typename?: 'OpenWindow', window: { __typename?: 'Window', id: string, name: string, component?: string | null, width: number, height: number, top: number, left: number, character?: { __typename?: 'CurrentCharacter', id: string } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> } } };
+export type SendChannelMessageMutation = { __typename?: 'Mutation', sendChannelMessage: { __typename?: 'SendChannelMessageResult', message: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, channel: { __typename?: 'Channel', id: string }, character: { __typename?: 'Character', id: string, name: string } } } };
 
-export type GetChannelsQueryVariables = Types.Exact<{
-  last: Types.Scalars['Int'];
-  before?: Types.InputMaybe<Types.Scalars['String']>;
+export type GetChannelsQueryVariables = Exact<{
+  last: Scalars['Int'];
+  before?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type GetChannelsQuery = { __typename?: 'Query', channels: Array<{ __typename?: 'Channel', id: string, name: string, description?: string | null, messages: { __typename?: 'ChannelMessageConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, nodes: Array<{ __typename?: 'ChannelMessage', id: string, message: string, timestamp: any, character?: { __typename?: 'Character', id: string, name: string } | null }> }, characters: Array<{ __typename?: 'Character', id: string }> }> };
+export type GetChannelsQuery = { __typename?: 'Query', channels: Array<{ __typename?: 'Channel', id: string, name: string, description?: string | null, messages: { __typename?: 'ChannelMessageConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'ChannelMessageEdge', cursor: string, node: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, character: { __typename?: 'Character', id: string, name: string } } }> }, characters: Array<{ __typename?: 'Character', id: string }> }> };
 
-export type GetChannelPreviousMessagesQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
-  before?: Types.InputMaybe<Types.Scalars['String']>;
-  last: Types.Scalars['Int'];
+export type GetChannelMessagesQueryVariables = Exact<{
+  id: Scalars['ID'];
+  before?: InputMaybe<Scalars['String']>;
+  after?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
 }>;
 
 
-export type GetChannelPreviousMessagesQuery = { __typename?: 'Query', channel: { __typename?: 'Channel', id: string, messages: { __typename?: 'ChannelMessageConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, nodes: Array<{ __typename?: 'ChannelMessage', id: string, message: string, timestamp: any, character?: { __typename?: 'Character', id: string, name: string } | null }> } } };
+export type GetChannelMessagesQuery = { __typename?: 'Query', channel: { __typename?: 'Channel', id: string, messages: { __typename?: 'ChannelMessageConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'ChannelMessageEdge', cursor: string, node: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, character: { __typename?: 'Character', id: string, name: string } } }> } } };
 
-export type GetAreasQueryVariables = Types.Exact<{ [key: string]: never; }>;
-
-
-export type GetAreasQuery = { __typename?: 'Query', areas: Array<{ __typename?: 'Area', id: string, name: string, rooms: Array<{ __typename?: 'Room', id: string, name: string, x: number, y: number, exits: Array<{ __typename?: 'Exit', id: string, secret: boolean, endRoom: { __typename?: 'Room', id: string, x: number, y: number } }> }> }> };
-
-export type GetMeQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type GetMeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMeQuery = { __typename?: 'Query', me: { __typename?: 'CurrentPlayer', id: string, characters: Array<{ __typename?: 'CurrentCharacter', id: string, name: string, baseColor?: string | null }>, windows: Array<{ __typename?: 'Window', id: string, name: string, z: number, top: number, left: number, width: number, height: number, component?: string | null, character?: { __typename?: 'CurrentCharacter', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> }> } };
+export type GetMeQuery = { __typename?: 'Query', me: { __typename?: 'Player', id: string, characters: Array<{ __typename?: 'Character', id: string, name: string, baseColor?: string | null }>, windows: Array<{ __typename?: 'Window', id: string, name: string, z: number, top: number, left: number, width: number, height: number, component?: string | null, character?: { __typename?: 'Character', id: string, name: string, baseColor?: string | null } | null, settings: Array<{ __typename?: 'WindowSetting', key: string, value: string }> }> } };
 
-export type SubscribeToChannelsSubscriptionVariables = Types.Exact<{ [key: string]: never; }>;
-
-
-export type SubscribeToChannelsSubscription = { __typename?: 'Subscription', channelMessages?: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: any, channel: { __typename?: 'Channel', id: string }, character?: { __typename?: 'Character', id: string, name: string } | null } | null };
+export type SubscribeToChannelsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export const UpdateWindowDocument = gql`
-    mutation updateWindow($input: UpdateWindowInput!) {
-  updateWindow(input: $input) {
-    window {
-      id
-      z
-      character {
-        id
-        name
-        baseColor
-      }
-      settings {
-        key
-        value
-      }
-    }
-  }
-}
-    `;
+export type SubscribeToChannelsSubscription = { __typename?: 'Subscription', channelMessages: { __typename?: 'ChannelMessage', id: string, message: string, timestamp: Date, channel: { __typename?: 'Channel', id: string }, character: { __typename?: 'Character', id: string, name: string } } };
 
-export function useUpdateWindowMutation() {
-  return Urql.useMutation<UpdateWindowMutation, UpdateWindowMutationVariables>(UpdateWindowDocument);
-};
-export const CloseWindowDocument = gql`
-    mutation closeWindow($input: CloseWindowInput!) {
-  closeWindow(input: $input) {
-    ok
-  }
-}
-    `;
-
-export function useCloseWindowMutation() {
-  return Urql.useMutation<CloseWindowMutation, CloseWindowMutationVariables>(CloseWindowDocument);
-};
-export const SendChannelMessageDocument = gql`
-    mutation sendChannelMessage($input: SendChannelMessageInput!) {
-  sendChannelMessage(input: $input) {
-    message {
-      id
-      message
-      timestamp
-      character {
-        id
-        name
-      }
-    }
-  }
-}
-    `;
-
-export function useSendChannelMessageMutation() {
-  return Urql.useMutation<SendChannelMessageMutation, SendChannelMessageMutationVariables>(SendChannelMessageDocument);
-};
-export const OpenWindowDocument = gql`
-    mutation openWindow($input: OpenWindowInput!) {
-  openWindow(input: $input) {
-    window {
-      id
-      name
-      character {
-        id
-      }
-      component
-      width
-      height
-      top
-      left
-      settings {
-        key
-        value
-      }
-    }
-  }
-}
-    `;
-
-export function useOpenWindowMutation() {
-  return Urql.useMutation<OpenWindowMutation, OpenWindowMutationVariables>(OpenWindowDocument);
-};
-export const GetChannelsDocument = gql`
-    query getChannels($last: Int!, $before: String) {
-  channels {
-    id
-    name
-    description
-    messages(last: $last, before: $before) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
-      nodes {
-        id
-        message
-        timestamp
-        character {
-          id
-          name
-        }
-      }
-    }
-    characters {
-      id
-    }
-  }
-}
-    `;
-
-export function useGetChannelsQuery(options: Omit<Urql.UseQueryArgs<never, GetChannelsQueryVariables>, 'query'> = {}) {
-  return Urql.useQuery<GetChannelsQuery>({ query: GetChannelsDocument, ...options });
-};
-export const GetChannelPreviousMessagesDocument = gql`
-    query getChannelPreviousMessages($id: ID!, $before: String, $last: Int!) {
-  channel(id: $id) {
-    id
-    messages(before: $before, last: $last) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
-      nodes {
-        id
-        message
-        timestamp
-        character {
-          id
-          name
-        }
-      }
-    }
-  }
-}
-    `;
-
-export function useGetChannelPreviousMessagesQuery(options: Omit<Urql.UseQueryArgs<never, GetChannelPreviousMessagesQueryVariables>, 'query'> = {}) {
-  return Urql.useQuery<GetChannelPreviousMessagesQuery>({ query: GetChannelPreviousMessagesDocument, ...options });
-};
-export const GetAreasDocument = gql`
-    query getAreas {
-  areas {
-    id
-    name
-    rooms {
-      id
-      name
-      x
-      y
-      exits {
-        id
-        secret
-        endRoom {
-          id
-          x
-          y
-        }
-      }
-    }
-  }
-}
-    `;
-
-export function useGetAreasQuery(options: Omit<Urql.UseQueryArgs<never, GetAreasQueryVariables>, 'query'> = {}) {
-  return Urql.useQuery<GetAreasQuery>({ query: GetAreasDocument, ...options });
-};
-export const GetMeDocument = gql`
-    query getMe {
-  me {
-    id
-    characters {
-      id
-      name
-      baseColor
-    }
-    windows {
-      id
-      name
-      z
-      top
-      left
-      width
-      height
-      component
-      character {
-        id
-        name
-        baseColor
-      }
-      settings {
-        key
-        value
-      }
-    }
-  }
-}
-    `;
-
-export function useGetMeQuery(options: Omit<Urql.UseQueryArgs<never, GetMeQueryVariables>, 'query'> = {}) {
-  return Urql.useQuery<GetMeQuery>({ query: GetMeDocument, ...options });
-};
-export const SubscribeToChannelsDocument = gql`
-    subscription subscribeToChannels {
-  channelMessages {
-    id
-    channel {
-      id
-    }
-    character {
-      id
-      name
-    }
-    message
-    timestamp
-  }
-}
-    `;
-
-export function useSubscribeToChannelsSubscription<R = SubscribeToChannelsSubscription>(options: Omit<Urql.UseSubscriptionArgs<never, SubscribeToChannelsSubscriptionVariables>, 'query'> = {}, handler?: Urql.SubscriptionHandlerArg<SubscribeToChannelsSubscription, R>) {
-  return Urql.useSubscription<SubscribeToChannelsSubscription, R, SubscribeToChannelsSubscriptionVariables>({ query: SubscribeToChannelsDocument, ...options }, handler);
-};
+export const ChannelBaseFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ChannelBase"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]} as unknown as DocumentNode<ChannelBaseFragment, unknown>;
+export const PageInfoAllFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PageInfoAll"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PageInfo"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}}]} as unknown as DocumentNode<PageInfoAllFragment, unknown>;
+export const ChannelMessageFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ChannelMessage"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ChannelMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"character"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<ChannelMessageFragment, unknown>;
+export const ChannelMessagesFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ChannelMessages"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ChannelMessageConnection"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PageInfoAll"}}]}},{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ChannelMessage"}}]}}]}}]}},...PageInfoAllFragmentDoc.definitions,...ChannelMessageFragmentDoc.definitions]} as unknown as DocumentNode<ChannelMessagesFragment, unknown>;
+export const UpdateWindowDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateWindow"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateWindowInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateWindow"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"window"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"top"}},{"kind":"Field","name":{"kind":"Name","value":"left"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"z"}},{"kind":"Field","name":{"kind":"Name","value":"character"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"baseColor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateWindowMutation, UpdateWindowMutationVariables>;
+export const UpdateWindowLocationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateWindowLocation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateWindowInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateWindow"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"window"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateWindowLocationMutation, UpdateWindowLocationMutationVariables>;
+export const CloseWindowDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"closeWindow"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CloseWindowInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"closeWindow"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}}]}}]}}]} as unknown as DocumentNode<CloseWindowMutation, CloseWindowMutationVariables>;
+export const SendChannelMessageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"sendChannelMessage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendChannelMessageInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendChannelMessage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"FragmentSpread","name":{"kind":"Name","value":"ChannelMessage"}}]}}]}}]}},...ChannelMessageFragmentDoc.definitions]} as unknown as DocumentNode<SendChannelMessageMutation, SendChannelMessageMutationVariables>;
+export const GetChannelsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getChannels"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"last"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"before"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"channels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ChannelBase"}},{"kind":"Field","name":{"kind":"Name","value":"messages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"last"},"value":{"kind":"Variable","name":{"kind":"Name","value":"last"}}},{"kind":"Argument","name":{"kind":"Name","value":"before"},"value":{"kind":"Variable","name":{"kind":"Name","value":"before"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ChannelMessages"}}]}},{"kind":"Field","name":{"kind":"Name","value":"characters"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}},...ChannelBaseFragmentDoc.definitions,...ChannelMessagesFragmentDoc.definitions]} as unknown as DocumentNode<GetChannelsQuery, GetChannelsQueryVariables>;
+export const GetChannelMessagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getChannelMessages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"before"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"last"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"channel"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"messages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"before"},"value":{"kind":"Variable","name":{"kind":"Name","value":"before"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"last"},"value":{"kind":"Variable","name":{"kind":"Name","value":"last"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ChannelMessages"}}]}}]}}]}},...ChannelMessagesFragmentDoc.definitions]} as unknown as DocumentNode<GetChannelMessagesQuery, GetChannelMessagesQueryVariables>;
+export const GetMeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getMe"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"characters"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"baseColor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"windows"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"z"}},{"kind":"Field","name":{"kind":"Name","value":"top"}},{"kind":"Field","name":{"kind":"Name","value":"left"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"component"}},{"kind":"Field","name":{"kind":"Name","value":"character"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"baseColor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetMeQuery, GetMeQueryVariables>;
+export const SubscribeToChannelsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"subscribeToChannels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"channelMessages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"character"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<SubscribeToChannelsSubscription, SubscribeToChannelsSubscriptionVariables>;

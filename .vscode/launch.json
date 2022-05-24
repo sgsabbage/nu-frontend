@@ -16,6 +16,20 @@
                 "<node_internals>/**"
             ],
             "type": "node"
+        },
+        {
+            "name": "Inspect",
+            "request": "launch",
+            "runtimeArgs": [
+                "--inspect",
+                "./node_modules/@vue/cli-service/bin/vue-cli-service.js",
+                "serve"
+            ],
+            "runtimeExecutable": "node",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         }
     ]
 }

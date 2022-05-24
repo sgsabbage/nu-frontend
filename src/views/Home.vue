@@ -1,16 +1,16 @@
 <template>
   <div class="vh-100">
     <nav
-      class="navbar navbar-expand navbar-dark sticky-top bg-info"
       v-if="!loading"
+      class="navbar navbar-expand navbar-dark sticky-top bg-info"
     >
       <a class="navbar-brand">NuMu</a>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown">
           <a
+            id="navbarDropdown"
             class="nav-link dropdown-toggle"
             href="#"
-            id="navbarDropdown"
             role="button"
             data-bs-toggle="dropdown"
             aria-haspopup="true"
@@ -19,12 +19,12 @@
             Dropdown
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <li
+            <!-- <li
               ><a
                 class="dropdown-item"
                 href="#"
                 @click="
-                  openWindow.executeMutation({
+                  openWindow.mutate({
                     input: {
                       component: 'Channels',
                       z: 500,
@@ -38,7 +38,7 @@
                 "
                 >Action</a
               ></li
-            >
+            > -->
             <li><a class="dropdown-item" href="#">Another action</a></li>
             <li>
               <div class="dropdown-divider"></div>
@@ -50,32 +50,32 @@
     </nav>
 
     <div
+      v-if="!loading"
       style="position: relative; overflow: auto; height: calc(100% - 56px)"
       class="lined-grid"
-      v-if="!loading"
     >
       <BaseWindow
-        :active="window.z === 500"
-        :activeCharacter="window.character"
-        :characters="currentPlayer?.characters"
-        :base-color="window.character?.baseColor"
         v-for="window in windows"
         :key="window.id"
+        :active="window.z === 500"
+        :active-character="window.character || undefined"
+        :characters="currentPlayer?.characters"
+        :base-color="window.character?.baseColor || undefined"
         :title="window.name"
         :style="windowStyle(window)"
+        :resizeable="true"
+        :draggable="true"
         @handlemousedown="onHandleMouseDown(window, $event)"
         @headermousedown="onHeaderMouseDown(window)"
         @mousedown="onWindowMouseDown(window)"
         @windowclose="onWindowClose(window)"
         @switchcharacter="onSwitchCharacter(window, $event)"
-        :resizeable="true"
-        :draggable="true"
       >
         <component
           :is="window.component"
           :character="window.character"
-          @updatesettings="onUpdateSettings(window, $event)"
           :settings="windowSettings(window)"
+          @updatesettings="onUpdateSettings(window, $event)"
         ></component>
       </BaseWindow>
       <div
@@ -90,7 +90,7 @@
         :style="{ left: snapVerticalLoc + 'px' }"
       />
     </div>
-    <div class="container-fluid" v-if="loading">
+    <div v-if="loading" class="container-fluid">
       <div class="row justify-content-center align-content-center vh-100">
         <div class="col-4">
           <h5>Loading</h5>
@@ -108,14 +108,18 @@ import { computed, defineComponent, ref } from "vue";
 import Channels from "@/components/Channels.vue";
 import Map from "@/components/Map.vue";
 import BulletinBoards from "@/components/BulletinBoards.vue";
-import { Direction, CurrentCharacter } from "@/types";
+import gql from "graphql-tag";
+
+import { Direction } from "@/types";
+import { useQuery, useMutation, useApolloClient } from "@vue/apollo-composable";
 import {
-  useCloseWindowMutation,
-  useGetMeQuery,
-  useOpenWindowMutation,
-  useUpdateWindowMutation,
+  GetMeDocument,
+  UpdateWindowDocument,
+  CloseWindowDocument,
+  UpdateWindowLocationDocument,
+  Character,
+  Window,
 } from "@/queries";
-import { WindowSettingInput, Window } from "@/gqltypes";
 
 interface WindowStyle {
   position: string;
@@ -146,10 +150,12 @@ export default defineComponent({
     ProgressBar,
     BaseWindow,
     Channels,
-    BulletinBoards,
-    Map,
+    // BulletinBoards,
+    // Map,
   },
   setup() {
+    const { resolveClient } = useApolloClient();
+    const client = resolveClient();
     let connState = ConnectionState.IDLE;
     let connection: WebSocket | null = null;
     let loading = ref(false);
@@ -163,6 +169,7 @@ export default defineComponent({
         loading.value = false;
       }, 1500);
     };
+    //doLoad();
 
     const windowStyle = (window: Window): WindowStyle => {
       return {
@@ -175,14 +182,12 @@ export default defineComponent({
       };
     };
 
-    const { data } = useGetMeQuery();
+    const data = useQuery(GetMeDocument);
+    const updateWindow = useMutation(UpdateWindowDocument);
+    const updateWindowLocation = useMutation(UpdateWindowLocationDocument);
 
-    const updateWindow = useUpdateWindowMutation();
-    const openWindow = useOpenWindowMutation();
-
-    const { executeMutation: deleteWindow } = useCloseWindowMutation();
-
-    const windows = computed(() => data.value?.me.windows || []);
+    const deleteWindow = useMutation(CloseWindowDocument);
+    const windows = computed(() => data.result.value?.me.windows || []);
 
     let resizeDirection: Direction | undefined;
     let resizeWindowId = "";
@@ -195,7 +200,7 @@ export default defineComponent({
       document.removeEventListener("mouseup", stopResize);
       const resizeWindow = windows.value.find((w) => w.id == resizeWindowId);
       if (resizeWindow) {
-        updateWindow.executeMutation({
+        updateWindowLocation.mutate({
           input: {
             id: resizeWindow.id,
             top: resizeWindow.top,
@@ -437,8 +442,29 @@ export default defineComponent({
           break;
         }
       }
-      draggedWindow.top = top;
-      draggedWindow.left = left;
+      const client = resolveClient();
+      client.writeQuery({
+        query: gql`
+          query updateLocation($id: ID!) {
+            window(id: $id) {
+              id
+              left
+              top
+            }
+          }
+        `,
+        data: {
+          window: {
+            __typename: "Window",
+            id: draggedWindow.id,
+            top: top,
+            left: left,
+          },
+        },
+        variables: {
+          id: draggedWindow.id,
+        },
+      });
       ev.preventDefault();
     };
 
@@ -452,7 +478,7 @@ export default defineComponent({
         return;
       }
 
-      updateWindow.executeMutation({
+      updateWindowLocation.mutate({
         input: {
           id: draggedWindow.id,
           top: draggedWindow.top,
@@ -470,7 +496,7 @@ export default defineComponent({
 
       for (const otherWindow of windows.value) {
         if (otherWindow.z < currentZ) {
-          updateWindow.executeMutation({
+          updateWindow.mutate({
             input: {
               id: otherWindow.id,
               z: otherWindow.z + 1,
@@ -478,11 +504,11 @@ export default defineComponent({
           });
         }
       }
-      deleteWindow({ input: { id: window.id } });
+      deleteWindow.mutate({ input: { id: window.id } });
     };
 
     return {
-      currentPlayer: computed(() => data.value?.me),
+      currentPlayer: computed(() => data.result.value?.me),
       windows,
       connState,
       connection,
@@ -495,7 +521,6 @@ export default defineComponent({
       snapHorizontalLoc,
       snapVertical,
       snapVerticalLoc,
-      openWindow,
       windowSettings: (window: Window): Record<string, string> => {
         const settings: Record<string, string> = {};
         for (let setting of window.settings) {
@@ -504,25 +529,44 @@ export default defineComponent({
         return settings;
       },
       onUpdateSettings: (window: Window, event: Record<string, string>) => {
-        const settings: WindowSettingInput[] = [];
-        for (let k of Object.keys(event)) {
-          settings.push({
-            key: k,
-            value: event[k],
-          });
-        }
-        updateWindow.executeMutation({
-          input: {
-            id: window.id,
-            settings,
-          },
-        });
+        // const settings: WindowSettingInput[] = [];
+        // for (let k of Object.keys(event)) {
+        //   settings.push({
+        //     key: k,
+        //     value: event[k],
+        //   });
+        // }
+        // updateWindow.mutate({
+        //   input: {
+        //     id: window.id,
+        //     settings,
+        //   },
+        // });
       },
       onWindowMouseDown: (window: Window): boolean => {
         const currentZ = window.z;
         if (window.z !== 500) {
-          window.z = 500;
-          updateWindow.executeMutation({
+          client.writeQuery({
+            query: gql`
+              query updateWindowZ($id: ID!) {
+                window(id: $id) {
+                  id
+                  z
+                }
+              }
+            `,
+            data: {
+              window: {
+                __typename: "Window",
+                id: window.id,
+                z: 500,
+              },
+            },
+            variables: {
+              id: window.id,
+            },
+          });
+          updateWindow.mutate({
             input: {
               id: window.id,
               z: 500,
@@ -534,7 +578,27 @@ export default defineComponent({
             continue;
           }
           if (otherWindow.z >= currentZ) {
-            updateWindow.executeMutation({
+            client.writeQuery({
+              query: gql`
+                query updateWindowZ($id: ID!) {
+                  window(id: $id) {
+                    id
+                    z
+                  }
+                }
+              `,
+              data: {
+                window: {
+                  __typename: "Window",
+                  id: otherWindow.id,
+                  z: otherWindow.z - 1,
+                },
+              },
+              variables: {
+                id: window.id,
+              },
+            });
+            updateWindow.mutate({
               input: {
                 id: otherWindow.id,
                 z: otherWindow.z - 1,
@@ -544,8 +608,8 @@ export default defineComponent({
         }
         return true;
       },
-      onSwitchCharacter: (window: Window, character: CurrentCharacter) => {
-        updateWindow.executeMutation({
+      onSwitchCharacter: (window: Window, character: Character) => {
+        updateWindow.mutate({
           input: {
             id: window.id,
             characterId: character.id,

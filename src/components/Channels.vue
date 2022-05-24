@@ -10,9 +10,9 @@
     <div class="channel-body d-flex">
       <ul class="channel-list me-3">
         <li
-          class="channel-item-outer"
           v-for="channel in characterChannels"
           :key="channel.name"
+          class="channel-item-outer"
         >
           <a
             class="channel-item-inner"
@@ -24,38 +24,21 @@
       </ul>
       <div class="channel-right d-flex flex-column">
         <SimpleBar class="channel-scroll" data-simplebar-auto-hide="false">
-          <button
-            v-if="selectedChannel?.messages.pageInfo.hasPreviousPage"
-            :disabled="loadingPrevious"
-            class="btn btn-secondary btn-sm my-2 me-2"
-            @click="loadPreviousMessages(selectedChannel)"
-          >
-            <span
-              class="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-              v-if="loadingPrevious"
-            ></span>
-            Load previous messages
-          </button>
-
-          <p v-for="message in visibleMessages" :key="message.id">
-            {{ formatMessage(message) }}
-          </p>
+          <Channel v-if="selectedChannel" :channel="selectedChannel" />
         </SimpleBar>
 
         <div class="channel-input">
           <textarea
+            v-model="channelInput"
             :disabled="selectedChannel == null"
             class="form-control"
-            v-model="channelInput"
-            @keydown="onInputKeydown"
             :placeholder="
               selectedChannel == null
                 ? 'Please select a channel'
                 : 'Send text to the channel...'
             "
             rows="2"
+            @keydown="onInputKeydown"
           >
           </textarea>
         </div>
@@ -65,22 +48,28 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, toRefs } from "vue";
+import { computed, defineComponent, ref, toRefs, watch } from "vue";
 import "simplebar/dist/simplebar.min.css";
 import SimpleBar from "@/components/SimpleBar.vue";
 import { CurrentCharacter } from "@/types";
 import {
-  GetChannelsQuery,
-  useGetChannelPreviousMessagesQuery,
-  useGetChannelsQuery,
-  useSendChannelMessageMutation,
-  useSubscribeToChannelsSubscription,
+  GetChannelsDocument,
+  ChannelBaseFragment,
+  SubscribeToChannelsDocument,
+  SendChannelMessageDocument,
 } from "@/queries";
-import { Channel, ChannelMessage, WindowSetting } from "@/gqltypes";
+import {
+  useApolloClient,
+  useMutation,
+  useQuery,
+  useSubscription,
+} from "@vue/apollo-composable";
+import Channel from "./Channel.vue";
+import gql from "graphql-tag";
 
 export default defineComponent({
   name: "Channels",
-  components: { SimpleBar },
+  components: { SimpleBar, Channel },
   props: {
     character: {
       type: Object as () => CurrentCharacter,
@@ -93,9 +82,10 @@ export default defineComponent({
     active: Boolean,
   },
   setup(props, { emit }) {
-    const messagesToLoad = 5;
+    const messagesToLoad = 1;
     let channelInput = ref("");
     let selectedChannelByCharacter = ref<Record<string, string>>({});
+    let sendMessage = useMutation(SendChannelMessageDocument);
     const { character, settings } = toRefs(props);
 
     for (let k of Object.keys(settings.value)) {
@@ -112,7 +102,7 @@ export default defineComponent({
           return;
         }
 
-        executeMutation({
+        sendMessage.mutate({
           input: {
             id: selectedChannel.value.id,
             characterId: character.value.id,
@@ -123,10 +113,7 @@ export default defineComponent({
       }
     };
 
-    const queryId = ref("");
-    const before = ref<string | null>("");
-
-    const selectChannel = (c: Channel) => {
+    const selectChannel = (c: ChannelBaseFragment) => {
       selectedChannelByCharacter.value[character.value.id] = c.id;
       let settings: Record<string, string> = {};
       for (let k of Object.keys(selectedChannelByCharacter.value)) {
@@ -135,38 +122,94 @@ export default defineComponent({
       emit("updatesettings", settings);
     };
 
-    const formatMessage = (c: ChannelMessage) => {
-      let message = "";
-      message += `[${new Intl.DateTimeFormat("default", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-      }).format(c.timestamp)}] `;
-      if (!c.character) {
-        return c.message;
-      }
-      message += c.character.name;
-      if (c.message.startsWith(":")) {
-        message += ` ${c.message.substr(1)}`;
-      } else if (c.message.startsWith(";")) {
-        message += `${c.message.substr(1)}`;
-      } else {
-        message += `: ${c.message}`;
-      }
-      return message;
-    };
-
-    const { data } = useGetChannelsQuery({
-      variables: { last: messagesToLoad, before: new Date().toISOString() },
+    const { result: data } = useQuery(GetChannelsDocument, {
+      last: messagesToLoad,
     });
-    useSubscribeToChannelsSubscription();
-    const { executeMutation } = useSendChannelMessageMutation();
-    let channels = computed<GetChannelsQuery["channels"]>(
-      () => data.value?.channels || []
-    );
+
+    const { result: sub } = useSubscription(SubscribeToChannelsDocument);
+    const { resolveClient } = useApolloClient();
+    const client = resolveClient();
+    watch(sub, (data) => {
+      if (data == null) {
+        return;
+      }
+      const message = data.channelMessages;
+      const channelId = message.channel.id;
+      const { channel } = client.readQuery({
+        query: gql`
+          query LatestMessage($id: ID!) {
+            channel(id: $id) {
+              messages(last: 1) {
+                pageInfo {
+                  endCursor
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          id: channelId,
+        },
+      });
+      const after = channel.messages.pageInfo.endCursor;
+      client.writeQuery({
+        query: gql`
+          query MessageAdd($id: ID!, $after: String) {
+            channel(id: $id) {
+              id
+              messages(after: $after) {
+                pageInfo {
+                  endCursor
+                }
+                edges {
+                  cursor
+                  node {
+                    id
+                    message
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          id: channelId,
+          after: after,
+        },
+        data: {
+          channel: {
+            __typename: "Channel",
+            id: channelId,
+            messages: {
+              __typename: "ChannelMessageConnection",
+              pageInfo: {
+                __typename: "PageInfo",
+                endCursor: message.timestamp,
+              },
+              edges: [
+                {
+                  __typename: "ChannelMessageEdge",
+                  cursor: message.timestamp,
+                  node: message,
+                },
+              ],
+            },
+          },
+        },
+      });
+      console.log(document.hasFocus());
+      if (!document.hasFocus()) {
+        console.log("What?");
+        console.log(document.hasFocus());
+        new Notification(`New chat message!`, {
+          body: `${message.character.name}: ${message.message}`,
+        });
+      }
+    });
+
+    // useSubscribeToChannelsSubscription();
+    // const { executeMutation } = useSendChannelMessageMutation();
+    let channels = computed(() => data.value?.channels ?? []);
 
     const characterChannels = computed(
       () =>
@@ -183,46 +226,12 @@ export default defineComponent({
       )
     );
 
-    const visibleMessages = computed(() => {
-      if (selectedChannel.value) {
-        const nodes = [...selectedChannel.value.messages.nodes];
-        return nodes.sort((a, b) => a.timestamp - b.timestamp);
-      }
-      return [];
-    });
-
-    const vars = reactive({
-      id: queryId,
-      before: before,
-      last: messagesToLoad,
-    });
-
-    const prevMess = useGetChannelPreviousMessagesQuery({
-      variables: vars,
-      pause: true,
-    });
-
-    const loadPreviousMessages = (c: Channel) => {
-      if (c.messages.nodes[0]) {
-        before.value = c.messages.nodes[0].timestamp.toISOString();
-      } else {
-        before.value = null;
-      }
-
-      queryId.value = c.id;
-      prevMess.resume();
-    };
-
     return {
-      loadPreviousMessages,
-      loadingPrevious: prevMess.fetching,
       data,
       selectedChannel,
       selectedChannelByCharacter,
       characterChannels,
       channelInput,
-      visibleMessages,
-      formatMessage,
       selectChannel,
       onInputKeydown,
     };

@@ -1,22 +1,8 @@
 query getChannels($last: Int!, $before: String) {
     channels {
-        id
-        name
-        description
+        ...ChannelBase
         messages(last:$last, before: $before) {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
-            }
-            nodes {
-                    id
-                message
-                timestamp
-                character {
-                    id
-                    name
-                }
-            }
+            ...ChannelMessages
         }
         characters {
             id
@@ -24,48 +10,36 @@ query getChannels($last: Int!, $before: String) {
     }
 }
 
-query getChannelPreviousMessages($id: ID!, $before: String, $last: Int!) {
+query getChannelMessages($id: ID!, $before: String, $after: String, $first: Int, $last: Int) {
     channel(id: $id) {
         id
-        messages(before: $before, last:$last) {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
-            }
-            nodes {
-                    id
-                message
-                timestamp
-                character {
-                    id
-                    name
-                }
-            }
+        messages(before: $before, after: $after, first: $first, last:$last) {
+            ...ChannelMessages
         }
     }
 }
 
-query getAreas {
-    areas {
-        id
-        name
-        rooms {
-            id
-            name
-            x
-            y
-            exits {
-                id
-                secret
-                endRoom {
-                    id
-                    x
-                    y
-                }
-            }
-        }
-    }
-}
+# query getAreas {
+#     areas {
+#         id
+#         name
+#         rooms {
+#             id
+#             name
+#             x
+#             y
+#             exits {
+#                 id
+#                 secret
+#                 endRoom {
+#                     id
+#                     x
+#                     y
+#                 }
+#             }
+#         }
+#     }
+# }
 
 
 query getMe{
