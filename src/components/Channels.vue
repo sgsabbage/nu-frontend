@@ -197,18 +197,13 @@ export default defineComponent({
           },
         },
       });
-      console.log(document.hasFocus());
       if (!document.hasFocus()) {
-        console.log("What?");
-        console.log(document.hasFocus());
         new Notification(`New chat message!`, {
           body: `${message.character.name}: ${message.message}`,
         });
       }
     });
 
-    // useSubscribeToChannelsSubscription();
-    // const { executeMutation } = useSendChannelMessageMutation();
     let channels = computed(() => data.value?.channels ?? []);
 
     const characterChannels = computed(

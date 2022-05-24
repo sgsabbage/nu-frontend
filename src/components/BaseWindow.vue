@@ -1,12 +1,12 @@
 <template>
   <div class="window">
     <div
+      ref="window"
       class="window-handle"
       :style="windowStyle"
       @mousemove.self="onHandleMouseMove"
       @mouseleave="onHandleMouseLeave"
       @mousedown.self="onHandleMouseDown"
-      ref="window"
     >
       <div
         class="window-outer"
@@ -53,15 +53,15 @@
             </div>
           </div>
           <ul
+            ref="dropdown"
             class="dropdown-menu"
             :class="{ show: showDropdown }"
-            ref="dropdown"
           >
             <li v-for="character in characters" :key="character.id">
               <a
-                @click="switchCharacter(character)"
                 class="dropdown-item"
                 :class="character === activeCharacter ? 'active' : ''"
+                @click="switchCharacter(character)"
                 >{{ character.name }}</a
               >
             </li>

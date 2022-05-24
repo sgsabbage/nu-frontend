@@ -119,6 +119,7 @@ import {
   UpdateWindowLocationDocument,
   Character,
   Window,
+  WindowSettingInput,
 } from "@/queries";
 
 interface WindowStyle {
@@ -359,10 +360,32 @@ export default defineComponent({
         left = 0;
       }
 
-      resizeWindow.left = left;
-      resizeWindow.top = top;
-      resizeWindow.height = height;
-      resizeWindow.width = width;
+      client.writeQuery({
+        query: gql`
+          query updateSize($id: ID!) {
+            window(id: $id) {
+              id
+              left
+              top
+              height
+              width
+            }
+          }
+        `,
+        data: {
+          window: {
+            __typename: "Window",
+            id: resizeWindow.id,
+            top: top,
+            left: left,
+            height: height,
+            width: width,
+          },
+        },
+        variables: {
+          id: resizeWindow.id,
+        },
+      });
     };
 
     const doDrag = (ev: MouseEvent) => {
@@ -442,7 +465,6 @@ export default defineComponent({
           break;
         }
       }
-      const client = resolveClient();
       client.writeQuery({
         query: gql`
           query updateLocation($id: ID!) {
@@ -529,19 +551,19 @@ export default defineComponent({
         return settings;
       },
       onUpdateSettings: (window: Window, event: Record<string, string>) => {
-        // const settings: WindowSettingInput[] = [];
-        // for (let k of Object.keys(event)) {
-        //   settings.push({
-        //     key: k,
-        //     value: event[k],
-        //   });
-        // }
-        // updateWindow.mutate({
-        //   input: {
-        //     id: window.id,
-        //     settings,
-        //   },
-        // });
+        const settings: WindowSettingInput[] = [];
+        for (let k of Object.keys(event)) {
+          settings.push({
+            key: k,
+            value: event[k],
+          });
+        }
+        updateWindow.mutate({
+          input: {
+            id: window.id,
+            settings,
+          },
+        });
       },
       onWindowMouseDown: (window: Window): boolean => {
         const currentZ = window.z;
