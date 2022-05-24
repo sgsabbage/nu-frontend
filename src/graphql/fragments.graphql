@@ -1,0 +1,35 @@
+fragment ChannelMessage on ChannelMessage {
+    id
+    message
+    timestamp
+    character {
+        id
+        name
+    }
+}
+
+
+fragment ChannelBase on Channel {
+    id
+    name
+    description
+}
+
+fragment PageInfoAll on PageInfo {
+    hasNextPage
+    hasPreviousPage
+    startCursor
+    endCursor
+}
+
+fragment ChannelMessages on ChannelMessageConnection {
+    pageInfo {
+      ...PageInfoAll
+    }
+    edges {
+        cursor
+        node {
+            ...ChannelMessage
+        }
+    }
+}

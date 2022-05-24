@@ -2,6 +2,62 @@
   <router-view />
 </template>
 
+<script setup lang="ts">
+import { provide } from "vue";
+import { DefaultApolloClient } from "@vue/apollo-composable";
+import { relayStylePagination } from "@apollo/client/utilities";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { createClient } from "graphql-ws";
+
+import { ApolloClient, InMemoryCache } from "@apollo/client/core";
+
+// HTTP connection to the API
+const httpLink = new GraphQLWsLink(
+  createClient({
+    url: "ws://nu.localhost/api/graphql",
+  })
+);
+
+// Cache implementation
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        channel: {
+          read(_, { args, toReference }) {
+            return toReference({
+              __typename: "Channel",
+              id: args?.id,
+            });
+          },
+        },
+      },
+    },
+    Channel: {
+      fields: {
+        messages: relayStylePagination(),
+      },
+    },
+    ChannelMessage: {
+      fields: {
+        timestamp: {
+          read(t) {
+            return new Date(t);
+          },
+        },
+      },
+    },
+  },
+});
+
+// Create the apollo client
+const apolloClient = new ApolloClient({
+  link: httpLink,
+  cache,
+});
+provide(DefaultApolloClient, apolloClient);
+</script>
+
 <style lang="scss">
 @import "scss/variables";
 @import "~bootstrap/scss/bootstrap";

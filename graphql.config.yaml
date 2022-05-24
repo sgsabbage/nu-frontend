@@ -1,0 +1,20 @@
+schema: http://app:8000/graphql
+documents: 'src/**/*.graphql'
+extensions:
+  codegen:
+    
+    generates:
+      ./src/queries.ts:
+        plugins:
+          - typescript
+          - typescript-operations
+          - typed-document-node
+        config:
+          scalars:
+            DateTime: Date
+      ./src/apollo-helpers.ts:
+        plugins:
+          - typescript-apollo-client-helpers
+    # hooks:
+    #   afterAllFileWrite:
+    #     - eslint --fix

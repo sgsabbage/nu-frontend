@@ -1,14 +1,6 @@
 module.exports = {
   devServer: {
     disableHostCheck: true,
-    proxy: {
-      "^/api": {
-        target: "http://app:8000",
-        changeOrigin: true,
-        ws: true,
-        pathRewrite: { "^/api": "" },
-      },
-    },
   },
   chainWebpack: (config) => {
     config.module

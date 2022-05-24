@@ -24,6 +24,13 @@ mutation updateWindow(
     }
 }
 
+mutation updateWindowLocation(
+    $input: UpdateWindowInput!
+) {
+    updateWindow(
+        input: $input
+    ) { window {id} }
+}
 
 mutation closeWindow ($input: CloseWindowInput!) {
     closeWindow(input: $input) {
@@ -37,35 +44,32 @@ mutation sendChannelMessage(
     input: $input
 ) {
     message {
-        id
-        message
-        timestamp
-        character {
-            id
-            name
+        channel {
+          id
         }
+        ...ChannelMessage
     }
 }
 }
 
-mutation openWindow($input: OpenWindowInput!) {
-    openWindow(input: $input) {
-        window {
-            id
-            name
-            character {
-                id
-            }
-            component
-            width
-            height
-            top
-            left
-            settings {
-                key
-                value
-            }
-        }
-    }
-}
+# mutation openWindow($input: OpenWindowInput!) {
+#     openWindow(input: $input) {
+#         window {
+#             id
+#             name
+#             character {
+#                 id
+#             }
+#             component
+#             width
+#             height
+#             top
+#             left
+#             settings {
+#                 key
+#                 value
+#             }
+#         }
+#     }
+# }
 

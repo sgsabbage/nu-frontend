@@ -22,7 +22,7 @@
                 @mousedown.self="$emit('headermousedown', $event)"
               >
                 <button class="btn btn-title" @click="toggleDropdown">
-                  <i class="bi-chevron-down"></i> {{ activeCharacter.name }}
+                  <i class="bi-chevron-down"></i> {{ activeCharacter?.name }}
                 </button>
               </div>
               <div
@@ -78,8 +78,9 @@
 </template>
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, toRefs } from "vue";
-import { CurrentCharacter, Direction } from "@/types";
+import { Direction } from "@/types";
 import convert from "color-convert";
+import { Character } from "@/queries";
 
 export default defineComponent({
   name: "BaseWindow",
@@ -93,10 +94,10 @@ export default defineComponent({
     title: String,
     active: Boolean,
     activeCharacter: {
-      type: Object as PropType<CurrentCharacter>,
+      type: Object as PropType<Character>,
     },
     characters: {
-      type: Array as PropType<Array<CurrentCharacter>>,
+      type: Array as PropType<Array<Character>>,
     },
     baseColor: String,
     draggable: {
@@ -230,7 +231,7 @@ export default defineComponent({
       emit("handlemousedown", { direction: handleDirection.value, event });
     };
 
-    const switchCharacter = (character: CurrentCharacter) => {
+    const switchCharacter = (character: Character) => {
       showDropdown.value = false;
       emit("switchcharacter", character);
     };
