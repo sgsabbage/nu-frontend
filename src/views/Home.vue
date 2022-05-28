@@ -55,9 +55,9 @@
       class="lined-grid"
     >
       <BaseWindow
-        v-for="window in windows"
+        v-for="(window, index) in [...windows].reverse()"
         :key="window.id"
-        :active="window.z === 500"
+        :active="index === windows.length - 1"
         :active-character="window.character || undefined"
         :characters="currentPlayer?.characters"
         :base-color="window.character?.baseColor || undefined"
@@ -70,6 +70,7 @@
         @mousedown="onWindowMouseDown(window)"
         @windowclose="onWindowClose(window)"
         @switchcharacter="onSwitchCharacter(window, $event)"
+        @updatetitle="onUpdateTitle(window, $event)"
       >
         <component
           :is="window.component"
@@ -105,15 +106,17 @@
 import BaseWindow from "../components/BaseWindow.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { computed, defineComponent, ref } from "vue";
-import Channels from "@/components/Channels.vue";
-import Map from "@/components/Map.vue";
-import BulletinBoards from "@/components/BulletinBoards.vue";
+import config from "@/config";
+
 import gql from "graphql-tag";
 
 import { Direction } from "@/types";
 import { useQuery, useMutation, useApolloClient } from "@vue/apollo-composable";
 import {
   GetMeDocument,
+  GetMyWindowsDocument,
+  BringWindowToFrontDocument,
+  UpdateWindowNameDocument,
   UpdateWindowDocument,
   CloseWindowDocument,
   UpdateWindowLocationDocument,
@@ -128,7 +131,6 @@ interface WindowStyle {
   height: string;
   top: string;
   left: string;
-  "z-index": number;
 }
 
 enum ConnectionState {
@@ -147,13 +149,13 @@ function checkDock(val1: number, val2: number) {
 
 export default defineComponent({
   name: "Home",
-  components: {
-    ProgressBar,
-    BaseWindow,
-    Channels,
-    // BulletinBoards,
-    // Map,
-  },
+  components: Object.assign(
+    {
+      ProgressBar,
+      BaseWindow,
+    },
+    config.components
+  ),
   setup() {
     const { resolveClient } = useApolloClient();
     const client = resolveClient();
@@ -172,6 +174,10 @@ export default defineComponent({
     };
     //doLoad();
 
+    for (const sub of config.subscribers) {
+      sub();
+    }
+
     const windowStyle = (window: Window): WindowStyle => {
       return {
         position: "absolute",
@@ -179,16 +185,31 @@ export default defineComponent({
         height: window.height + WINDOW_PADDING * 2 + "px",
         top: window.top - WINDOW_PADDING + "px",
         left: window.left - WINDOW_PADDING + "px",
-        "z-index": window.z,
       };
     };
 
     const data = useQuery(GetMeDocument);
+    const { result: windowsData } = useQuery(GetMyWindowsDocument);
     const updateWindow = useMutation(UpdateWindowDocument);
+    const updateWindowName = useMutation(UpdateWindowNameDocument);
+    const bringWindowToFront = useMutation(BringWindowToFrontDocument, () => ({
+      update: (cache, { data }) => {
+        cache.writeQuery({
+          query: gql`
+            query getWindows {
+              windows {
+                id
+              }
+            }
+          `,
+          data: { windows: data?.bringWindowToFront.windows },
+        });
+      },
+    }));
     const updateWindowLocation = useMutation(UpdateWindowLocationDocument);
 
     const deleteWindow = useMutation(CloseWindowDocument);
-    const windows = computed(() => data.result.value?.me.windows || []);
+    const windows = computed(() => windowsData.value?.windows || []);
 
     let resizeDirection: Direction | undefined;
     let resizeWindowId = "";
@@ -514,18 +535,6 @@ export default defineComponent({
     };
 
     const onWindowClose = (window: Window) => {
-      const currentZ = window.z;
-
-      for (const otherWindow of windows.value) {
-        if (otherWindow.z < currentZ) {
-          updateWindow.mutate({
-            input: {
-              id: otherWindow.id,
-              z: otherWindow.z + 1,
-            },
-          });
-        }
-      }
       deleteWindow.mutate({ input: { id: window.id } });
     };
 
@@ -566,68 +575,13 @@ export default defineComponent({
         });
       },
       onWindowMouseDown: (window: Window): boolean => {
-        const currentZ = window.z;
-        if (window.z !== 500) {
-          client.writeQuery({
-            query: gql`
-              query updateWindowZ($id: ID!) {
-                window(id: $id) {
-                  id
-                  z
-                }
-              }
-            `,
-            data: {
-              window: {
-                __typename: "Window",
-                id: window.id,
-                z: 500,
-              },
-            },
-            variables: {
-              id: window.id,
-            },
-          });
-          updateWindow.mutate({
-            input: {
-              id: window.id,
-              z: 500,
-            },
-          });
+        if (windows.value[0] === window) {
+          return true;
         }
-        for (let otherWindow of windows?.value) {
-          if (window === otherWindow) {
-            continue;
-          }
-          if (otherWindow.z >= currentZ) {
-            client.writeQuery({
-              query: gql`
-                query updateWindowZ($id: ID!) {
-                  window(id: $id) {
-                    id
-                    z
-                  }
-                }
-              `,
-              data: {
-                window: {
-                  __typename: "Window",
-                  id: otherWindow.id,
-                  z: otherWindow.z - 1,
-                },
-              },
-              variables: {
-                id: window.id,
-              },
-            });
-            updateWindow.mutate({
-              input: {
-                id: otherWindow.id,
-                z: otherWindow.z - 1,
-              },
-            });
-          }
-        }
+        bringWindowToFront.mutate({
+          id: window.id,
+        });
+
         return true;
       },
       onSwitchCharacter: (window: Window, character: Character) => {
@@ -667,6 +621,22 @@ export default defineComponent({
         return true;
       },
       onWindowClose,
+      onUpdateTitle: (window: Window, title: string): void => {
+        updateWindowName.mutate(
+          { id: window.id, name: title },
+          {
+            optimisticResponse: {
+              updateWindow: {
+                window: {
+                  __typename: "Window",
+                  id: window.id,
+                  name: title,
+                },
+              },
+            },
+          }
+        );
+      },
     };
   },
 });

@@ -28,8 +28,20 @@
               <div
                 class="window-title"
                 @mousedown.self="$emit('headermousedown', $event)"
+                @dblclick="startEditingTitle"
               >
-                {{ title }}
+                <span v-if="!editingHeader">
+                  {{ title }}
+                </span>
+                <input
+                  v-else
+                  ref="headerInput"
+                  v-model="editTitle"
+                  class="form-control header-input"
+                  @focusout.self="stopEditingTitle"
+                  @keyup.escape="stopEditingTitle"
+                  @keyup.enter="saveTitle"
+                />
               </div>
               <div
                 v-if="!static"
@@ -76,190 +88,210 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs } from "vue";
+<script lang="ts" setup>
+import {
+  computed,
+  PropType,
+  ref,
+  toRefs,
+  defineEmits,
+  defineProps,
+  watch,
+} from "vue";
 import { Direction } from "@/types";
 import convert from "color-convert";
 import { Character } from "@/queries";
 
-export default defineComponent({
-  name: "BaseWindow",
-  emits: [
-    "handlemousedown",
-    "headermousedown",
-    "switchcharacter",
-    "windowclose",
-  ],
-  props: {
-    title: String,
-    active: Boolean,
-    activeCharacter: {
-      type: Object as PropType<Character>,
-    },
-    characters: {
-      type: Array as PropType<Array<Character>>,
-    },
-    baseColor: String,
-    draggable: {
-      type: Boolean,
-      default: false,
-    },
-    resizeable: {
-      type: Boolean,
-      default: false,
-    },
-    static: {
-      type: Boolean,
-      default: false,
-    },
+const emit = defineEmits([
+  "handlemousedown",
+  "headermousedown",
+  "switchcharacter",
+  "windowclose",
+  "updatetitle",
+]);
+const props = defineProps({
+  title: {
+    type: String,
+    default: "",
   },
-
-  setup(props, { emit }) {
-    const window = ref<HTMLElement | null>(null);
-    let handleDirection = ref(Direction.NONE);
-    const { resizeable, baseColor } = toRefs(props);
-    let showDropdown = ref(false);
-
-    const dropdown = ref<HTMLElement | null>(null);
-
-    const onHandleMouseMove = (e: MouseEvent) => {
-      if (window.value === null || !resizeable.value) {
-        return;
-      }
-
-      handleDirection.value = Direction.NONE;
-
-      const centerX = window.value?.clientWidth / 2;
-      const centerY = window.value?.clientHeight / 2;
-
-      const cornerDegrees = (Math.atan2(centerY, centerX) * 180) / Math.PI;
-
-      const mouseX = e.offsetX;
-      const mouseY = e.offsetY;
-
-      const xLength = mouseX - centerX;
-      const yLength = mouseY - centerY;
-
-      const mouseDegrees = (Math.atan2(yLength, xLength) * 180) / Math.PI + 180;
-
-      const cornerWidth = 2;
-
-      if (
-        mouseDegrees > 360 - cornerDegrees - cornerWidth ||
-        mouseDegrees < cornerDegrees + cornerWidth
-      ) {
-        handleDirection.value = Direction.WEST;
-      } else if (
-        mouseDegrees >= 180 - cornerDegrees - cornerWidth &&
-        mouseDegrees <= 180 + cornerDegrees + cornerWidth
-      ) {
-        handleDirection.value = Direction.EAST;
-      }
-
-      if (
-        mouseDegrees >= cornerDegrees - cornerWidth &&
-        mouseDegrees <= 180 - cornerDegrees + cornerWidth
-      ) {
-        handleDirection.value |= Direction.NORTH;
-      } else if (
-        mouseDegrees >= 180 + cornerDegrees - cornerWidth &&
-        mouseDegrees <= 360 - cornerDegrees + cornerWidth
-      ) {
-        handleDirection.value |= Direction.SOUTH;
-      }
-    };
-
-    const cursorStyle = computed(() => {
-      let cursor = "";
-
-      if (handleDirection.value === Direction.NONE) {
-        return cursor;
-      }
-
-      if ((handleDirection.value & Direction.NORTH) === Direction.NORTH) {
-        cursor += "n";
-      } else if (
-        (handleDirection.value & Direction.SOUTH) ===
-        Direction.SOUTH
-      ) {
-        cursor += "s";
-      }
-
-      if ((handleDirection.value & Direction.WEST) === Direction.WEST) {
-        cursor += "w";
-      } else if ((handleDirection.value & Direction.EAST) === Direction.EAST) {
-        cursor += "e";
-      }
-      return cursor + "-resize";
-    });
-
-    const colorOverride = computed(() => {
-      let overrides = {};
-      if (baseColor?.value) {
-        const [h, s, l] = convert.hex.hsl(baseColor.value);
-        overrides = {
-          "--nu-base": `hsl(${h}, ${s}%, ${l}%)`,
-          "--nu-light-1": `hsl(${h}, ${s}%, ${l * 1.1}%)`,
-          "--nu-light-2": `hsl(${h}, ${s}%, ${l * 1.2}%)`,
-          "--nu-light-3": `hsl(${h}, ${s}%, ${l * 1.3}%)`,
-          "--nu-light-4": `hsl(${h}, ${s}%, ${l * 1.4}%)`,
-          "--nu-light-5": `hsl(${h}, ${s}%, ${l * 1.5}%)`,
-          "--nu-dark-1": `hsl(${h}, ${s}%, ${l * 0.8}%)`,
-          "--nu-dark-2": `hsl(${h}, ${s}%, ${l * 0.6}%)`,
-          "--nu-dark-3": `hsl(${h}, ${s}%, ${l * 0.4}%)`,
-          "--nu-dark-4": `hsl(${h}, ${s}%, ${l * 0.3}%)`,
-          "--nu-dark-5": `hsl(${h}, ${s}%, ${l * 0.2}%)`,
-        };
-      }
-      return overrides;
-    });
-
-    const windowStyle = computed(() => {
-      let style: Record<string, string> = {};
-      Object.assign(style, colorOverride.value);
-
-      if (cursorStyle.value) {
-        style.cursor = cursorStyle.value;
-      }
-      return style;
-    });
-
-    const onHandleMouseDown = (event: MouseEvent) => {
-      if (!resizeable.value) {
-        return;
-      }
-      emit("handlemousedown", { direction: handleDirection.value, event });
-    };
-
-    const switchCharacter = (character: Character) => {
-      showDropdown.value = false;
-      emit("switchcharacter", character);
-    };
-
-    const toggleDropdown = () => {
-      showDropdown.value = !showDropdown.value;
-    };
-
-    return {
-      window,
-      showDropdown,
-      toggleDropdown,
-      dropdown,
-      handleDirection,
-      cursorStyle,
-      windowStyle,
-      colorOverride,
-      switchCharacter,
-      onHandleMouseMove,
-      onHandleMouseDown,
-      onHandleMouseLeave: () => {
-        if (!resizeable.value) {
-          return;
-        }
-        handleDirection.value = Direction.NONE;
-      },
-    };
+  active: Boolean,
+  activeCharacter: {
+    type: Object as PropType<Character>,
+    required: true,
   },
+  characters: {
+    type: Array as PropType<Array<Character>>,
+    required: true,
+  },
+  baseColor: {
+    type: String,
+    default: "",
+  },
+  draggable: {
+    type: Boolean,
+    default: false,
+  },
+  resizeable: {
+    type: Boolean,
+    default: false,
+  },
+  static: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const headerInput = ref<HTMLElement | null>(null);
+
+const window = ref<HTMLElement | null>(null);
+let handleDirection = ref(Direction.NONE);
+const { resizeable, baseColor } = toRefs(props);
+let showDropdown = ref(false);
+let editingHeader = ref(false);
+let editTitle = ref("");
+
+const dropdown = ref<HTMLElement | null>(null);
+
+const onHandleMouseMove = (e: MouseEvent) => {
+  if (window.value === null || !resizeable.value) {
+    return;
+  }
+
+  handleDirection.value = Direction.NONE;
+
+  const centerX = window.value?.clientWidth / 2;
+  const centerY = window.value?.clientHeight / 2;
+
+  const cornerDegrees = (Math.atan2(centerY, centerX) * 180) / Math.PI;
+
+  const mouseX = e.offsetX;
+  const mouseY = e.offsetY;
+
+  const xLength = mouseX - centerX;
+  const yLength = mouseY - centerY;
+
+  const mouseDegrees = (Math.atan2(yLength, xLength) * 180) / Math.PI + 180;
+
+  const cornerWidth = 2;
+
+  if (
+    mouseDegrees > 360 - cornerDegrees - cornerWidth ||
+    mouseDegrees < cornerDegrees + cornerWidth
+  ) {
+    handleDirection.value = Direction.WEST;
+  } else if (
+    mouseDegrees >= 180 - cornerDegrees - cornerWidth &&
+    mouseDegrees <= 180 + cornerDegrees + cornerWidth
+  ) {
+    handleDirection.value = Direction.EAST;
+  }
+
+  if (
+    mouseDegrees >= cornerDegrees - cornerWidth &&
+    mouseDegrees <= 180 - cornerDegrees + cornerWidth
+  ) {
+    handleDirection.value |= Direction.NORTH;
+  } else if (
+    mouseDegrees >= 180 + cornerDegrees - cornerWidth &&
+    mouseDegrees <= 360 - cornerDegrees + cornerWidth
+  ) {
+    handleDirection.value |= Direction.SOUTH;
+  }
+};
+
+const cursorStyle = computed(() => {
+  let cursor = "";
+
+  if (handleDirection.value === Direction.NONE) {
+    return cursor;
+  }
+
+  if ((handleDirection.value & Direction.NORTH) === Direction.NORTH) {
+    cursor += "n";
+  } else if ((handleDirection.value & Direction.SOUTH) === Direction.SOUTH) {
+    cursor += "s";
+  }
+
+  if ((handleDirection.value & Direction.WEST) === Direction.WEST) {
+    cursor += "w";
+  } else if ((handleDirection.value & Direction.EAST) === Direction.EAST) {
+    cursor += "e";
+  }
+  return cursor + "-resize";
+});
+
+const colorOverride = computed(() => {
+  let overrides = {};
+  if (baseColor?.value) {
+    const [h, s, l] = convert.hex.hsl(baseColor.value);
+    overrides = {
+      "--nu-base": `hsl(${h}, ${s}%, ${l}%)`,
+      "--nu-light-1": `hsl(${h}, ${s}%, ${l * 1.1}%)`,
+      "--nu-light-2": `hsl(${h}, ${s}%, ${l * 1.2}%)`,
+      "--nu-light-3": `hsl(${h}, ${s}%, ${l * 1.3}%)`,
+      "--nu-light-4": `hsl(${h}, ${s}%, ${l * 1.4}%)`,
+      "--nu-light-5": `hsl(${h}, ${s}%, ${l * 1.5}%)`,
+      "--nu-dark-1": `hsl(${h}, ${s}%, ${l * 0.8}%)`,
+      "--nu-dark-2": `hsl(${h}, ${s}%, ${l * 0.6}%)`,
+      "--nu-dark-3": `hsl(${h}, ${s}%, ${l * 0.4}%)`,
+      "--nu-dark-4": `hsl(${h}, ${s}%, ${l * 0.3}%)`,
+      "--nu-dark-5": `hsl(${h}, ${s}%, ${l * 0.2}%)`,
+    };
+  }
+  return overrides;
+});
+
+const windowStyle = computed(() => {
+  let style: Record<string, string> = {};
+  Object.assign(style, colorOverride.value);
+
+  if (cursorStyle.value) {
+    style.cursor = cursorStyle.value;
+  }
+  return style;
+});
+
+const onHandleMouseDown = (event: MouseEvent) => {
+  if (!resizeable.value) {
+    return;
+  }
+  emit("handlemousedown", { direction: handleDirection.value, event });
+};
+
+const switchCharacter = (character: Character) => {
+  showDropdown.value = false;
+  emit("switchcharacter", character);
+};
+
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value;
+};
+
+const startEditingTitle = () => {
+  editingHeader.value = true;
+  editTitle.value = props.title;
+};
+
+const stopEditingTitle = () => {
+  editingHeader.value = false;
+};
+
+const saveTitle = (e: Event) => {
+  editingHeader.value = false;
+  emit("updatetitle", e.target?.value);
+};
+
+const onHandleMouseLeave = () => {
+  if (!resizeable.value) {
+    return;
+  }
+  handleDirection.value = Direction.NONE;
+};
+
+watch(headerInput, (header) => {
+  if (header !== null) {
+    header.focus();
+  }
 });
 </script>
 
@@ -284,6 +316,7 @@ export default defineComponent({
   height: 30px;
   clip-path: $notch-top-path;
 }
+
 .window-body {
   height: calc(100% - 30px);
   overflow: hidden;
@@ -323,13 +356,16 @@ export default defineComponent({
 .window-title-buttons-after,
 .window-title-buttons-before {
   color: var(--nu-light-3);
-  min-width: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.window-title-buttons-after,
-.window-title-buttons-before,
 .window-title {
-  flex: 1;
+  padding: 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
 }
 
 .window-title-buttons-before {
@@ -359,6 +395,7 @@ export default defineComponent({
   .window-title-buttons-before & {
     font-size: 0.6rem;
   }
+
   &:hover,
   &:focus {
     box-shadow: none;
@@ -381,8 +418,19 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   transition: opacity ease 0.2s;
+
   &.active {
     opacity: 0.4;
   }
+}
+
+.header-input {
+  border: 0;
+  background-color: inherit;
+  text-align: inherit;
+  font-size: inherit;
+  padding: inherit;
+  line-height: inherit;
+  box-shadow: none;
 }
 </style>

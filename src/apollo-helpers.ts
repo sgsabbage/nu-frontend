@@ -41,10 +41,12 @@ export type CloseWindowResultKeySpecifier = ('ok' | CloseWindowResultKeySpecifie
 export type CloseWindowResultFieldPolicy = {
 	ok?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type MutationKeySpecifier = ('closeWindow' | 'sendChannelMessage' | 'updateWindow' | MutationKeySpecifier)[];
+export type MutationKeySpecifier = ('bringWindowToFront' | 'closeWindow' | 'sendChannelMessage' | 'sendWindowToBack' | 'updateWindow' | MutationKeySpecifier)[];
 export type MutationFieldPolicy = {
+	bringWindowToFront?: FieldPolicy<any> | FieldReadFunction<any>,
 	closeWindow?: FieldPolicy<any> | FieldReadFunction<any>,
 	sendChannelMessage?: FieldPolicy<any> | FieldReadFunction<any>,
+	sendWindowToBack?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateWindow?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type PageInfoKeySpecifier = ('endCursor' | 'hasNextPage' | 'hasPreviousPage' | 'startCursor' | PageInfoKeySpecifier)[];
@@ -62,13 +64,14 @@ export type PlayerFieldPolicy = {
 	username?: FieldPolicy<any> | FieldReadFunction<any>,
 	windows?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('areas' | 'channel' | 'channels' | 'me' | 'rooms' | QueryKeySpecifier)[];
+export type QueryKeySpecifier = ('areas' | 'channel' | 'channels' | 'me' | 'rooms' | 'windows' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	areas?: FieldPolicy<any> | FieldReadFunction<any>,
 	channel?: FieldPolicy<any> | FieldReadFunction<any>,
 	channels?: FieldPolicy<any> | FieldReadFunction<any>,
 	me?: FieldPolicy<any> | FieldReadFunction<any>,
-	rooms?: FieldPolicy<any> | FieldReadFunction<any>
+	rooms?: FieldPolicy<any> | FieldReadFunction<any>,
+	windows?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type RoomKeySpecifier = ('area' | 'id' | 'name' | 'x' | 'y' | RoomKeySpecifier)[];
 export type RoomFieldPolicy = {
@@ -90,7 +93,7 @@ export type UpdateWindowResultKeySpecifier = ('window' | UpdateWindowResultKeySp
 export type UpdateWindowResultFieldPolicy = {
 	window?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type WindowKeySpecifier = ('character' | 'component' | 'height' | 'id' | 'left' | 'name' | 'settings' | 'top' | 'width' | 'z' | WindowKeySpecifier)[];
+export type WindowKeySpecifier = ('character' | 'component' | 'height' | 'id' | 'left' | 'name' | 'settings' | 'top' | 'width' | WindowKeySpecifier)[];
 export type WindowFieldPolicy = {
 	character?: FieldPolicy<any> | FieldReadFunction<any>,
 	component?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -100,8 +103,11 @@ export type WindowFieldPolicy = {
 	name?: FieldPolicy<any> | FieldReadFunction<any>,
 	settings?: FieldPolicy<any> | FieldReadFunction<any>,
 	top?: FieldPolicy<any> | FieldReadFunction<any>,
-	width?: FieldPolicy<any> | FieldReadFunction<any>,
-	z?: FieldPolicy<any> | FieldReadFunction<any>
+	width?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type WindowOrderResultKeySpecifier = ('windows' | WindowOrderResultKeySpecifier)[];
+export type WindowOrderResultFieldPolicy = {
+	windows?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type WindowSettingKeySpecifier = ('key' | 'value' | WindowSettingKeySpecifier)[];
 export type WindowSettingFieldPolicy = {
@@ -172,6 +178,10 @@ export type StrictTypedTypePolicies = {
 	Window?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | WindowKeySpecifier | (() => undefined | WindowKeySpecifier),
 		fields?: WindowFieldPolicy,
+	},
+	WindowOrderResult?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | WindowOrderResultKeySpecifier | (() => undefined | WindowOrderResultKeySpecifier),
+		fields?: WindowOrderResultFieldPolicy,
 	},
 	WindowSetting?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | WindowSettingKeySpecifier | (() => undefined | WindowSettingKeySpecifier),

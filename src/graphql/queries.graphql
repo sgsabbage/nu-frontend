@@ -19,27 +19,18 @@ query getChannelMessages($id: ID!, $before: String, $after: String, $first: Int,
     }
 }
 
-# query getAreas {
-#     areas {
-#         id
-#         name
-#         rooms {
-#             id
-#             name
-#             x
-#             y
-#             exits {
-#                 id
-#                 secret
-#                 endRoom {
-#                     id
-#                     x
-#                     y
-#                 }
-#             }
-#         }
-#     }
-# }
+query getAreas {
+    areas {
+        id
+        name
+        rooms {
+            id
+            name
+            x
+            y
+        }
+    }
+}
 
 
 query getMe{
@@ -50,24 +41,26 @@ query getMe{
             name
             baseColor
         }
-        windows {
+    }
+}
+
+query getMyWindows {
+    windows {
+        id
+        name
+        top
+        left
+        width
+        height
+        component
+        character {
             id
             name
-            z
-            top
-            left
-            width
-            height
-            component
-            character {
-                id
-                name
-                baseColor
-            }
-            settings {
-                key
-                value
-            }
+            baseColor
+        }
+        settings {
+            key
+            value
         }
     }
 }

@@ -6,11 +6,11 @@ mutation updateWindow(
     ) {
         window {
             id
+            name
             top
             left
             height
             width
-            z
             character {
                 id
                 name
@@ -20,6 +20,47 @@ mutation updateWindow(
                 key
                 value
             }
+        }
+    }
+}
+
+mutation updateWindowName(
+    $name: String!,
+    $id: UUID!
+) {
+    updateWindow(
+        input: {
+            id: $id
+            name: $name
+        }
+    ) {
+        window {
+            id
+            name
+        }
+    }
+}
+
+mutation bringWindowToFront(
+    $id: UUID!
+) {
+    bringWindowToFront(
+        id: $id
+    ) {
+        windows {
+            id
+        }
+    }
+}
+
+mutation sendWindowToBack(
+    $id: UUID!
+) {
+    sendWindowToBack(
+        id: $id
+    ) {
+        windows {
+            id
         }
     }
 }

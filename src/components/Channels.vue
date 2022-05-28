@@ -47,191 +47,91 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from "vue";
+<script lang="ts" setup>
+import { computed, ref, toRefs } from "vue";
 import "simplebar/dist/simplebar.min.css";
 import SimpleBar from "@/components/SimpleBar.vue";
 import { CurrentCharacter } from "@/types";
 import {
   GetChannelsDocument,
   ChannelBaseFragment,
-  SubscribeToChannelsDocument,
   SendChannelMessageDocument,
 } from "@/queries";
-import {
-  useApolloClient,
-  useMutation,
-  useQuery,
-  useSubscription,
-} from "@vue/apollo-composable";
+import { useMutation, useQuery } from "@vue/apollo-composable";
 import Channel from "./Channel.vue";
-import gql from "graphql-tag";
 
-export default defineComponent({
-  name: "Channels",
-  components: { SimpleBar, Channel },
-  props: {
-    character: {
-      type: Object as () => CurrentCharacter,
-      required: true,
-    },
-    settings: {
-      type: Object,
-      required: true,
-    },
-    active: Boolean,
+const props = defineProps({
+  character: {
+    type: Object as () => CurrentCharacter,
+    required: true,
   },
-  setup(props, { emit }) {
-    const messagesToLoad = 1;
-    let channelInput = ref("");
-    let selectedChannelByCharacter = ref<Record<string, string>>({});
-    let sendMessage = useMutation(SendChannelMessageDocument);
-    const { character, settings } = toRefs(props);
+  settings: {
+    type: Object,
+    required: true,
+  },
+  active: Boolean,
+});
 
-    for (let k of Object.keys(settings.value)) {
-      if (k.startsWith("selectedChannel-")) {
-        let char = k.replace("selectedChannel-", "");
-        selectedChannelByCharacter.value[char] = settings.value[k];
-      }
+const messagesToLoad = 1;
+let channelInput = ref("");
+let selectedChannelByCharacter = ref<Record<string, string>>({});
+let sendMessage = useMutation(SendChannelMessageDocument);
+const { character, settings } = toRefs(props);
+const emit = defineEmits(["updatesettings"]);
+
+for (let k of Object.keys(settings.value)) {
+  if (k.startsWith("selectedChannel-")) {
+    let char = k.replace("selectedChannel-", "");
+    selectedChannelByCharacter.value[char] = settings.value[k];
+  }
+}
+
+const onInputKeydown = (e: KeyboardEvent) => {
+  if (e.code === "Enter") {
+    e.preventDefault();
+    if (!selectedChannel.value || channelInput.value === "") {
+      return;
     }
 
-    const onInputKeydown = (e: KeyboardEvent) => {
-      if (e.code === "Enter") {
-        e.preventDefault();
-        if (!selectedChannel.value || channelInput.value === "") {
-          return;
-        }
-
-        sendMessage.mutate({
-          input: {
-            id: selectedChannel.value.id,
-            characterId: character.value.id,
-            message: channelInput.value,
-          },
-        });
-        channelInput.value = "";
-      }
-    };
-
-    const selectChannel = (c: ChannelBaseFragment) => {
-      selectedChannelByCharacter.value[character.value.id] = c.id;
-      let settings: Record<string, string> = {};
-      for (let k of Object.keys(selectedChannelByCharacter.value)) {
-        settings[`selectedChannel-${k}`] = selectedChannelByCharacter.value[k];
-      }
-      emit("updatesettings", settings);
-    };
-
-    const { result: data } = useQuery(GetChannelsDocument, {
-      last: messagesToLoad,
+    sendMessage.mutate({
+      input: {
+        id: selectedChannel.value.id,
+        characterId: character.value.id,
+        message: channelInput.value,
+      },
     });
+    channelInput.value = "";
+  }
+};
 
-    const { result: sub } = useSubscription(SubscribeToChannelsDocument);
-    const { resolveClient } = useApolloClient();
-    const client = resolveClient();
-    watch(sub, (data) => {
-      if (data == null) {
-        return;
-      }
-      const message = data.channelMessages;
-      const channelId = message.channel.id;
-      const { channel } = client.readQuery({
-        query: gql`
-          query LatestMessage($id: ID!) {
-            channel(id: $id) {
-              messages(last: 1) {
-                pageInfo {
-                  endCursor
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          id: channelId,
-        },
-      });
-      const after = channel.messages.pageInfo.endCursor;
-      client.writeQuery({
-        query: gql`
-          query MessageAdd($id: ID!, $after: String) {
-            channel(id: $id) {
-              id
-              messages(after: $after) {
-                pageInfo {
-                  endCursor
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                    message
-                  }
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          id: channelId,
-          after: after,
-        },
-        data: {
-          channel: {
-            __typename: "Channel",
-            id: channelId,
-            messages: {
-              __typename: "ChannelMessageConnection",
-              pageInfo: {
-                __typename: "PageInfo",
-                endCursor: message.timestamp,
-              },
-              edges: [
-                {
-                  __typename: "ChannelMessageEdge",
-                  cursor: message.timestamp,
-                  node: message,
-                },
-              ],
-            },
-          },
-        },
-      });
-      if (!document.hasFocus()) {
-        new Notification(`New chat message!`, {
-          body: `${message.character.name}: ${message.message}`,
-        });
-      }
-    });
+const selectChannel = (c: ChannelBaseFragment) => {
+  selectedChannelByCharacter.value[character.value.id] = c.id;
+  let settings: Record<string, string> = {};
+  for (let k of Object.keys(selectedChannelByCharacter.value)) {
+    settings[`selectedChannel-${k}`] = selectedChannelByCharacter.value[k];
+  }
+  emit("updatesettings", settings);
+};
 
-    let channels = computed(() => data.value?.channels ?? []);
-
-    const characterChannels = computed(
-      () =>
-        channels.value.filter(
-          (c) =>
-            c.characters.find((char) => char.id === character.value.id) !=
-            undefined
-        ) || []
-    );
-
-    const selectedChannel = computed(() =>
-      channels.value.find(
-        (c) => c.id === selectedChannelByCharacter.value[character.value.id]
-      )
-    );
-
-    return {
-      data,
-      selectedChannel,
-      selectedChannelByCharacter,
-      characterChannels,
-      channelInput,
-      selectChannel,
-      onInputKeydown,
-    };
-  },
+const { result: data } = useQuery(GetChannelsDocument, {
+  last: messagesToLoad,
 });
+
+let channels = computed(() => data.value?.channels ?? []);
+
+const characterChannels = computed(
+  () =>
+    channels.value.filter(
+      (c) =>
+        c.characters.find((char) => char.id === character.value.id) != undefined
+    ) || []
+);
+
+const selectedChannel = computed(() =>
+  channels.value.find(
+    (c) => c.id === selectedChannelByCharacter.value[character.value.id]
+  )
+);
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
