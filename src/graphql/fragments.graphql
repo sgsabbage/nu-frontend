@@ -33,3 +33,15 @@ fragment ChannelMessages on ChannelMessageConnection {
         }
     }
 }
+
+
+fragment CurrentCharacter on Character {
+    id
+    name
+    baseColor
+    currentRoom {
+      id
+      name
+      description
+    } 
+}

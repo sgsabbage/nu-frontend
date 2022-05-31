@@ -37,9 +37,7 @@ query getMe{
     me {
         id
         characters {
-            id
-            name
-            baseColor
+            ...CurrentCharacter
         }
     }
 }
@@ -54,9 +52,7 @@ query getMyWindows {
         height
         component
         character {
-            id
-            name
-            baseColor
+            ...CurrentCharacter
         }
         settings {
             key

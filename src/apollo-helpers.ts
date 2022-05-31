@@ -31,9 +31,10 @@ export type ChannelMessageEdgeFieldPolicy = {
 	cursor?: FieldPolicy<any> | FieldReadFunction<any>,
 	node?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type CharacterKeySpecifier = ('baseColor' | 'id' | 'name' | CharacterKeySpecifier)[];
+export type CharacterKeySpecifier = ('baseColor' | 'currentRoom' | 'id' | 'name' | CharacterKeySpecifier)[];
 export type CharacterFieldPolicy = {
 	baseColor?: FieldPolicy<any> | FieldReadFunction<any>,
+	currentRoom?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	name?: FieldPolicy<any> | FieldReadFunction<any>
 };
@@ -73,9 +74,10 @@ export type QueryFieldPolicy = {
 	rooms?: FieldPolicy<any> | FieldReadFunction<any>,
 	windows?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type RoomKeySpecifier = ('area' | 'id' | 'name' | 'x' | 'y' | RoomKeySpecifier)[];
+export type RoomKeySpecifier = ('area' | 'description' | 'id' | 'name' | 'x' | 'y' | RoomKeySpecifier)[];
 export type RoomFieldPolicy = {
 	area?: FieldPolicy<any> | FieldReadFunction<any>,
+	description?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	name?: FieldPolicy<any> | FieldReadFunction<any>,
 	x?: FieldPolicy<any> | FieldReadFunction<any>,

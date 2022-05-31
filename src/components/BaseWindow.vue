@@ -100,7 +100,7 @@ import {
 } from "vue";
 import { Direction } from "@/types";
 import convert from "color-convert";
-import { Character } from "@/queries";
+import { CurrentCharacterFragment } from "@/queries";
 
 const emit = defineEmits([
   "handlemousedown",
@@ -116,11 +116,11 @@ const props = defineProps({
   },
   active: Boolean,
   activeCharacter: {
-    type: Object as PropType<Character>,
+    type: Object as PropType<CurrentCharacterFragment>,
     required: true,
   },
   characters: {
-    type: Array as PropType<Array<Character>>,
+    type: Array as PropType<Array<CurrentCharacterFragment>>,
     required: true,
   },
   baseColor: {
@@ -258,7 +258,7 @@ const onHandleMouseDown = (event: MouseEvent) => {
   emit("handlemousedown", { direction: handleDirection.value, event });
 };
 
-const switchCharacter = (character: Character) => {
+const switchCharacter = (character: CurrentCharacterFragment) => {
   showDropdown.value = false;
   emit("switchcharacter", character);
 };
