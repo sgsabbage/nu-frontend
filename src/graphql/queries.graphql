@@ -50,7 +50,9 @@ query getAreas {
 query getMe{
     me {
         id
-        ...PlayerCharacters
+        characters {
+            ...CurrentCharacter
+        }
     }
 }
 
@@ -64,9 +66,7 @@ query getMyWindows {
         height
         component
         character {
-            id
-            name
-            baseColor
+            ...CurrentCharacter
         }
         settings {
             key

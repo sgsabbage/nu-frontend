@@ -59,7 +59,7 @@
         :key="window.id"
         :active="index === windows.length - 1"
         :active-character="window.character || undefined"
-        :characters="currentPlayer?.characters"
+        :characters="currentPlayer?.characters || []"
         :base-color="window.character?.baseColor || undefined"
         :title="window.name"
         :style="windowStyle(window)"
