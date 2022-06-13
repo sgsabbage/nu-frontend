@@ -28,6 +28,20 @@ query getAreas {
             name
             x
             y
+            characters {
+                id
+                name
+            }
+            exits {
+                id
+                name
+                secret
+                endRoom {
+                    id
+                    x
+                    y
+                }
+            }
         }
     }
 }
@@ -36,11 +50,7 @@ query getAreas {
 query getMe{
     me {
         id
-        characters {
-            id
-            name
-            baseColor
-        }
+        ...PlayerCharacters
     }
 }
 

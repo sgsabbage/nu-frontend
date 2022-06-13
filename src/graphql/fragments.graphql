@@ -8,6 +8,14 @@ fragment ChannelMessage on ChannelMessage {
     }
 }
 
+fragment PlayerCharacters on Player {
+    characters {
+        id
+        name
+        baseColor
+    }
+}
+
 
 fragment ChannelBase on Channel {
     id

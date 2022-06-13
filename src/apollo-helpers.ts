@@ -31,9 +31,10 @@ export type ChannelMessageEdgeFieldPolicy = {
 	cursor?: FieldPolicy<any> | FieldReadFunction<any>,
 	node?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type CharacterKeySpecifier = ('baseColor' | 'id' | 'name' | CharacterKeySpecifier)[];
+export type CharacterKeySpecifier = ('baseColor' | 'currentRoom' | 'id' | 'name' | CharacterKeySpecifier)[];
 export type CharacterFieldPolicy = {
 	baseColor?: FieldPolicy<any> | FieldReadFunction<any>,
+	currentRoom?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	name?: FieldPolicy<any> | FieldReadFunction<any>
 };
@@ -41,12 +42,20 @@ export type CloseWindowResultKeySpecifier = ('ok' | CloseWindowResultKeySpecifie
 export type CloseWindowResultFieldPolicy = {
 	ok?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type MutationKeySpecifier = ('bringWindowToFront' | 'closeWindow' | 'sendChannelMessage' | 'sendWindowToBack' | 'updateWindow' | MutationKeySpecifier)[];
+export type ExitKeySpecifier = ('endRoom' | 'id' | 'name' | 'secret' | ExitKeySpecifier)[];
+export type ExitFieldPolicy = {
+	endRoom?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	name?: FieldPolicy<any> | FieldReadFunction<any>,
+	secret?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type MutationKeySpecifier = ('bringWindowToFront' | 'closeWindow' | 'sendChannelMessage' | 'sendWindowToBack' | 'updateRoom' | 'updateWindow' | MutationKeySpecifier)[];
 export type MutationFieldPolicy = {
 	bringWindowToFront?: FieldPolicy<any> | FieldReadFunction<any>,
 	closeWindow?: FieldPolicy<any> | FieldReadFunction<any>,
 	sendChannelMessage?: FieldPolicy<any> | FieldReadFunction<any>,
 	sendWindowToBack?: FieldPolicy<any> | FieldReadFunction<any>,
+	updateRoom?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateWindow?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type PageInfoKeySpecifier = ('endCursor' | 'hasNextPage' | 'hasPreviousPage' | 'startCursor' | PageInfoKeySpecifier)[];
@@ -73,9 +82,12 @@ export type QueryFieldPolicy = {
 	rooms?: FieldPolicy<any> | FieldReadFunction<any>,
 	windows?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type RoomKeySpecifier = ('area' | 'id' | 'name' | 'x' | 'y' | RoomKeySpecifier)[];
+export type RoomKeySpecifier = ('area' | 'characters' | 'description' | 'exits' | 'id' | 'name' | 'x' | 'y' | RoomKeySpecifier)[];
 export type RoomFieldPolicy = {
 	area?: FieldPolicy<any> | FieldReadFunction<any>,
+	characters?: FieldPolicy<any> | FieldReadFunction<any>,
+	description?: FieldPolicy<any> | FieldReadFunction<any>,
+	exits?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	name?: FieldPolicy<any> | FieldReadFunction<any>,
 	x?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -85,9 +97,14 @@ export type SendChannelMessageResultKeySpecifier = ('message' | SendChannelMessa
 export type SendChannelMessageResultFieldPolicy = {
 	message?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type SubscriptionKeySpecifier = ('channelMessages' | SubscriptionKeySpecifier)[];
+export type SubscriptionKeySpecifier = ('channelMessages' | 'roomStatus' | SubscriptionKeySpecifier)[];
 export type SubscriptionFieldPolicy = {
-	channelMessages?: FieldPolicy<any> | FieldReadFunction<any>
+	channelMessages?: FieldPolicy<any> | FieldReadFunction<any>,
+	roomStatus?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type UpdateRoomResultKeySpecifier = ('room' | UpdateRoomResultKeySpecifier)[];
+export type UpdateRoomResultFieldPolicy = {
+	room?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type UpdateWindowResultKeySpecifier = ('window' | UpdateWindowResultKeySpecifier)[];
 export type UpdateWindowResultFieldPolicy = {
@@ -143,6 +160,10 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | CloseWindowResultKeySpecifier | (() => undefined | CloseWindowResultKeySpecifier),
 		fields?: CloseWindowResultFieldPolicy,
 	},
+	Exit?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ExitKeySpecifier | (() => undefined | ExitKeySpecifier),
+		fields?: ExitFieldPolicy,
+	},
 	Mutation?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | MutationKeySpecifier | (() => undefined | MutationKeySpecifier),
 		fields?: MutationFieldPolicy,
@@ -170,6 +191,10 @@ export type StrictTypedTypePolicies = {
 	Subscription?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | SubscriptionKeySpecifier | (() => undefined | SubscriptionKeySpecifier),
 		fields?: SubscriptionFieldPolicy,
+	},
+	UpdateRoomResult?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | UpdateRoomResultKeySpecifier | (() => undefined | UpdateRoomResultKeySpecifier),
+		fields?: UpdateRoomResultFieldPolicy,
 	},
 	UpdateWindowResult?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | UpdateWindowResultKeySpecifier | (() => undefined | UpdateWindowResultKeySpecifier),

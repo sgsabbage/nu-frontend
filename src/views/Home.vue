@@ -76,6 +76,8 @@
           :is="window.component"
           :character="window.character"
           :settings="windowSettings(window)"
+          :height="window.height"
+          :width="window.width"
           @updatesettings="onUpdateSettings(window, $event)"
         ></component>
       </BaseWindow>

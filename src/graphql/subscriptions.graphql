@@ -12,3 +12,11 @@ subscription subscribeToChannels{
         timestamp
     }
 }
+
+subscription subscribeToRoom{
+  roomStatus {
+    id
+    name
+    description
+  }
+}

@@ -13,6 +13,9 @@ export default function setup(): void {
       return;
     }
     const message = data.channelMessages;
+    if (!message) {
+      return;
+    }
     const channelId = message.channel.id;
     const { channel } = client.readQuery({
       query: gql`
